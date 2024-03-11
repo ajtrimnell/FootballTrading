@@ -5,7 +5,7 @@ import pandas as pd
 import math
 from statistics import mean 
 
-import yfinance as yf
+# import yfinance as yf
 import matplotlib.pyplot as plt
 import csv
 
