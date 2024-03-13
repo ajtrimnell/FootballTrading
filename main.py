@@ -48,15 +48,18 @@ def workerFunction0():
 ''' Continously updates prices and bollinger data '''
 def workerFunction1():
     # Stating a class name and the putting () after it will create an instance of that class.
-    MatchPrices()
-    MatchOddsPlusOne()
+    now = datetime.now().replace(microsecond=0)
+    MatchPrices(now)
+    MatchOddsPlusOne(now)
     for match in matchObjectsList:
         BollingerBands(match, intervals)
+        Calculations(match, intervals)
+
         
 ''' Update xg attributes when a market has less than 120 seconds until start time'''
 def workerFunction2():
     for match in matchObjectsList:
-        if (match.dateTimeObject - datetime.now()).total_seconds() < 120:
+        if (match.dateTimeObject - datetime.now()).total_seconds() < 120000: # Change this back to 120
             match.getXg()
 
 ''' Scores from Rapid Api'''
@@ -75,28 +78,30 @@ def workerFunction3():
    
 ''' Print score, minute and prices to console '''
 def workerFunction4():    
+    print('-----------------')
     for match in matchObjectsList:
         try:
-            print(match.fixture, match.homeGoals, match.awayGoals, match.prices.iloc[-1])               
+            print(match.fixture, match.homeGoals, match.awayGoals, match.prices.iloc[-1]['homeBackPrice'], match.prices.iloc[-1]['awayBackPrice'], match.prices.iloc[-1]['drawBackPrice'])               
         except IndexError:
             print(f'IndexError on {match.fixture}')
             continue
         
-leagues = [39,40,41,61,78,135,140]
+leagues = [39,40,41,61,78,135,140] # Don't forget Champions League and internationals etc
 today = todaysDate()
               
 if __name__ == '__main__':
     
-    worker0 = PeriodicThread(workerFunction0, interval=1)
-    worker0.start()
+    # worker0 = PeriodicThread(workerFunction0, interval=1)
+    # worker0.start()
+    workerFunction0()
     
     worker1 = PeriodicThread(workerFunction1, interval=1)
     worker1.start()
        
     worker2 = PeriodicThread(workerFunction2, interval=60)
-    # worker2.start()
+    worker2.start()
           
-    worker3 = PeriodicThread(workerFunction3, interval=1)
+    worker3 = PeriodicThread(workerFunction3, interval=15)
     worker3.start()
     
     worker4 = PeriodicThread(workerFunction4, interval=1)
@@ -109,7 +114,7 @@ if __name__ == '__main__':
            sleep(1)
     except (KeyboardInterrupt, SystemExit):
         
-        worker0.terminate()
+        # worker0.terminate()
         worker1.terminate()
         worker2.terminate()
         worker3.terminate()
