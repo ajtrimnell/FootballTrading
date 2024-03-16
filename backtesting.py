@@ -162,7 +162,7 @@ def rateOfChangeCalcs(xg, periodMins, min, match):
     
     breakEven = totalLoss
     initialPrice = homePriceAtStart
-    price = homePriceAtStart 
+    price = homePriceAtStart # Of period being measured
     
     return match, totalLoss, initialPrice, breakEven, price, min, periodMins
     rateOfChange(match, totalLoss, initialPrice, breakEven, price, min, periodMins)
@@ -204,7 +204,7 @@ def rateOfChange(match, totalLoss, initialPrice, breakEven, price, min, periodMi
         homeOdds = mean(match.homeBack[int((min-1)*60):int(min*60)])
         awayOdds = mean(match.awayBack[int((min-1)*60):int(min*60)])
 
-        homeOddsArray = match.homeBack
+        # homeOddsArray = match.homeBack
         price += 0.01
         breakEven = totalLoss + (((price-1) - (initialPrice-1)) / price)
         
