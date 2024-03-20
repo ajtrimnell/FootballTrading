@@ -26,9 +26,6 @@ def createBetAngelApiObject():
 betAngelApiObject = createBetAngelApiObject()
 
 
-
-
-
 class Match:
     
     def __init__(self, id, eventId, fixture, dateTimeString, selections, isInPlay):
@@ -49,6 +46,10 @@ class Match:
         self.awayTeam = None # Name of the away team
         self.homeTeamCountry = None # The country where the home team is from
         self.awayTeamCountry = None # The country where the away team is from
+        
+        self.homeBetfairId = None
+        self.awayBetfairId = None
+        self.drawBetfairId = None
         
         self.matchDate = None
         self.startTime = None
@@ -103,11 +104,12 @@ class Match:
             return self.matchDate, self.startTime
 
         def teams(self, selections):
-            self.homeId = selections[0].get('id')
+            self.homeBetfairId = selections[0].get('id')
             self.homeTeam = selections[0].get('name')
             self.awayId = selections[1].get('id')
             self.awayTeam = selections[1].get('name')
-            return self.homeId, self.homeTeam, self.awayId, self.awayTeam
+            self.drawBetfairId = selections[2].get('id')
+            return self.homeBetfairId, self.homeTeam, self.awayBetfairId, self.awayTeam, self.drawBetfairId
         
         def teamsCountry(self):
             self.homeTeamCountry = countries[self.homeTeam]
@@ -353,7 +355,6 @@ class MatchOddsPlusOne:
         self.dfToAppend.to_csv(f'./plusOneMarkets/{match.fixture}_{team}_plus_one.csv', mode='a', header=False, index=False)        
     
         
-
 class GoalMarkets: 
     
     def __init__(self, eventId):
@@ -398,7 +399,6 @@ class BollingerBands:
         
         j = 0
         for interval in intervals:
-            print((eventId.prices.iloc[-1:]['matchOddsTime'] - timedelta(seconds=interval)).values[0] - (eventId.prices.iloc[0:1]['matchOddsTime']).values[0])
             if (eventId.prices.iloc[-1:]['matchOddsTime'] - timedelta(seconds=interval)).values[0] - (eventId.prices.iloc[0:1]['matchOddsTime']).values[0] < interval:
                 return    
             else:

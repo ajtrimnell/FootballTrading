@@ -78,8 +78,9 @@ def getTeamIds(leagueId, season):
 
 
 leaguesList = [39,40,46,45,47,48,43,41,42]
-leaguesList = [42]
+leaguesList = [43]
 seasonsList = [2010, 2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2023]
+seasonsList = [2023]
 
 for season in seasonsList:
     bigJsonObject = {}

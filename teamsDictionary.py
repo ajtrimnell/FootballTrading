@@ -1,3 +1,5 @@
+''' Rapid Api on left and Betfair on right'''
+
 teamsDictionary = {
     "leagues":	{	
         39:{	
@@ -99,6 +101,32 @@ teamsDictionary = {
             "Tranmere":"Tranmere",
             "Walsall":"Walsall",
             "Wrexham":"Wrexham"
+        },
+        43: {
+            "AFC Fylde":"AFC Fylde",
+            "Aldershot Town":"Aldershot",
+            "Altrincham":"Altrincham",
+            "Barnet":"Barnet",
+            "Boreham Wood":"Boreham Wood",
+            "Bromley":"Bromley",
+            "Chesterfield":"Chesterfield",
+            "Dagenham & Redbridge":"Dag and Red",
+            "Dorking Wanderers":"Dorking Wanderers",
+            "Eastleigh":"Eastleigh",
+            "Ebbsfleet United":"Ebbsfleet Utd",
+            "FC Halifax Town":"FC Halifax Town",
+            "Gateshead":"Gateshead",
+            "Hartlepool":"Hartlepool",
+            "Kidderminster Harriers":"Kidderminster",
+            "Maidenhead":"Maidenhead",
+            "Oldham":"Oldham",
+            "Oxford City":"Oxford City",
+            "Rochdale":"Rochdale",
+            "Solihull Moors":"Solihull Moors",
+            "Southend":"Southend",
+            "Wealdstone":"Wealdstone",
+            "Woking":"Woking",
+            "York":"York City"
         },
         140:{	
             "Alaves":"Alaves",
