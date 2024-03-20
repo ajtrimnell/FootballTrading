@@ -8,54 +8,7 @@ import math
 from statistics import mean
 
 from teamsCountries import *
-
-class CallBetfair:
-
-    def __init__(self, matchOddsPort, matchOddsPlusOnePort, correctScorePort, goalMarketsPort):
-        self.response = None 
-        self.matchOddsPort = matchOddsPort
-        self.matchOddsPlusOnePort = matchOddsPlusOnePort
-        self.correctScorePort = correctScorePort
-        self.goalMarketsPort = goalMarketsPort
-        
-    def request(endpoint, dataRequired, port, path):
-        apiUrl = f"http://localhost:{port}/api/{path}/v1.0/{endpoint}" 
-        response = (requests.post(apiUrl, headers = {'Content-Type': 'application/json'}, data=dataRequired)).json()
-        return response
-
-    def markets(self):  
-        endpoint = "getMarkets"      
-        dataRequired = '{"dataRequired":["ID","NAME","MARKET_START_TIME","MARKET_INPLAY_STATUS","EVENT_ID","EVENT_TYPE_ID","MARKET_TYPE","SELECTION_IDS","SELECTION_NAMES"]}' 
-        return (CallBetfair.request(endpoint, dataRequired, self.matchOddsPort, 'markets')).get('result',{}).get('markets')
-    
-    def marketPrices(self):
-        endpoint = "getStoredValues"
-        dataRequired = '{"marketsFilter":{"filter":"ALL"},"selectionsFilter":{"filter":"ALL"},"storedValueFilterBetAngelLevel":{"storedValueFilter":"ALL","excludeSharedValues":true},"storedValueFilterEventLevel":{"storedValueFilter":"ALL","excludeSharedValues":true},"storedValueFilterMarketLevel":{"storedValueFilter":"ALL","excludeSharedValues":true},"storedValueFilterSelectionLevel":{"storedValueFilter":"ALL","excludeSharedValues":true}}'
-        return CallBetfair.request(endpoint, dataRequired, self.matchOddsPort, 'automation').get('result',{}).get('markets')
-    
-    def plusOneMarkets(self):
-        endpoint = "getMarkets"      
-        dataRequired = '{"dataRequired":["ID","NAME","MARKET_START_TIME","MARKET_INPLAY_STATUS","EVENT_ID","EVENT_TYPE_ID","MARKET_TYPE","SELECTION_IDS","SELECTION_NAMES"]}' 
-        return (CallBetfair.request(endpoint, dataRequired, self.matchOddsPlusOnePort, 'markets')).get('result',{}).get('markets')
-    
-    def plusOneMarketPrices(self):
-        endpoint = "getStoredValues"
-        dataRequired = '{"marketsFilter":{"filter":"ALL"},"selectionsFilter":{"filter":"ALL"},"storedValueFilterBetAngelLevel":{"storedValueFilter":"ALL","excludeSharedValues":true},"storedValueFilterEventLevel":{"storedValueFilter":"ALL","excludeSharedValues":true},"storedValueFilterMarketLevel":{"storedValueFilter":"ALL","excludeSharedValues":true},"storedValueFilterSelectionLevel":{"storedValueFilter":"ALL","excludeSharedValues":true}}'
-        return CallBetfair.request(endpoint, dataRequired, self.matchOddsPlusOnePort, 'automation').get('result',{}).get('markets')
-    
-    
-    def goalMarkets(self):
-        endpoint = "getMarkets"      
-        dataRequired = '{"dataRequired":["ID","MARKET_INPLAY_STATUS","EVENT_ID","MARKET_TYPE"]}' 
-        return CallBetfair.request(endpoint, dataRequired, self.goalMarketsPort, 'markets').get('result',{}).get('markets')
-    
-    def correctScore(self):
-        endpoint = "getMarkets"      
-        dataRequired = '{"dataRequired":["ID","MARKET_INPLAY_STATUS","EVENT_ID","MARKET_TYPE"]}' 
-        return CallBetfair.request(endpoint, dataRequired, self.correctScorePort, 'markets').get('result',{}).get('markets')
-    
-    def __repr__(self):
-        return self.markets
+from callBetfair import CallBetfair
 
 
 def createBetAngelApiObject(): 
@@ -71,6 +24,9 @@ def createBetAngelApiObject():
 
 ''' Create an object that will be used for all api calls. This means that only one object is created daily '''
 betAngelApiObject = createBetAngelApiObject()
+
+
+
 
 
 class Match:
@@ -177,26 +133,44 @@ class Match:
             self.bollingerBandDict['1140'].to_csv(f'./tempFiles/{self.fixture}_1140.csv')
             self.bollingerBandDict['1200'].to_csv(f'./tempFiles/{self.fixture}_1200.csv')
             
-        def bollingerBandsDataframeList(self):        
+        def bollingerBandsDataframeDict(self):        
             self.bollingerBandDict = {
-                '10':pd.DataFrame(columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd']),
-                '300':pd.DataFrame(columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd']),
-                '360':pd.DataFrame(columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd']),
-                '420':pd.DataFrame(columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd']),
-                '480':pd.DataFrame(columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd']),
-                '540':pd.DataFrame(columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd']),
-                '600':pd.DataFrame(columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd']),
-                '600':pd.DataFrame(columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd']),
-                '660':pd.DataFrame(columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd']),
-                '720':pd.DataFrame(columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd']),
-                '780':pd.DataFrame(columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd']),
-                '840':pd.DataFrame(columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd']),
-                '900':pd.DataFrame(columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd']),
-                '960':pd.DataFrame(columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd']),
-                '1020':pd.DataFrame(columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd']),
-                '1080':pd.DataFrame(columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd']),
-                '1140':pd.DataFrame(columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd']),
-                '1200':pd.DataFrame(columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd'])
+                '10':pd.DataFrame(columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                           'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd']),
+                '300':pd.DataFrame(columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                           'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd']),
+                '360':pd.DataFrame(columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                           'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd']),
+                '420':pd.DataFrame(columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                           'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd']),
+                '480':pd.DataFrame(columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                           'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd']),
+                '540':pd.DataFrame(columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                           'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd']),
+                '600':pd.DataFrame(columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                           'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd']),
+                '600':pd.DataFrame(columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                           'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd']),
+                '660':pd.DataFrame(columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                           'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd']),
+                '720':pd.DataFrame(columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                           'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd']),
+                '780':pd.DataFrame(columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                           'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd']),
+                '840':pd.DataFrame(columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                           'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd']),
+                '900':pd.DataFrame(columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                           'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd']),
+                '960':pd.DataFrame(columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                           'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd']),
+                '1020':pd.DataFrame(columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                           'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd']),
+                '1080':pd.DataFrame(columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                           'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd']),
+                '1140':pd.DataFrame(columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                           'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd']),
+                '1200':pd.DataFrame(columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                           'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd']),
             }
             return self.bollingerBandDict
 
@@ -213,7 +187,7 @@ class Match:
         matchDateTime(self, dateTimeString)
         teams(self, selections)
         teamsCountry(self)
-        bollingerBandsDataframeList(self)
+        bollingerBandsDataframeDict(self)
         createCsvs(self)
         plusOneDataframes(self)
         plusOneCsvs(self)
@@ -405,9 +379,7 @@ class BollingerBands:
         self.time = eventId.matchOddsTime
         self.prices = eventId.prices
         self.homePrices = eventId.homeBackPrice
-        
-        # self.bollingerBandDict = eventId.bollingerBandDict
-        
+
         self.rowIndex = eventId.rowIndex
         self.movingAverage = None
         self.oneStandardDev = None
@@ -426,33 +398,41 @@ class BollingerBands:
         
         j = 0
         for interval in intervals:
+            print((eventId.prices.iloc[-1:]['matchOddsTime'] - timedelta(seconds=interval)).values[0] - (eventId.prices.iloc[0:1]['matchOddsTime']).values[0])
             if (eventId.prices.iloc[-1:]['matchOddsTime'] - timedelta(seconds=interval)).values[0] - (eventId.prices.iloc[0:1]['matchOddsTime']).values[0] < interval:
                 return    
             else:
                 start = (eventId.prices.iloc[-1:]['matchOddsTime'] - timedelta(seconds=interval)).values[0]
                 end = (eventId.prices.iloc[-1:]['matchOddsTime']).values[0]
                 mask = (eventId.prices['matchOddsTime'] >= start) & (eventId.prices['matchOddsTime'] < end)
-                sampleDf = eventId.prices.loc[mask].resample('S', on='matchOddsTime')['homeBackPrice', 'homeLayPrice', 'awayBackPrice', 'awayLayPrice', 'drawBackPrice', 'drawLayPrice'].mean()
-        
-                self.movingAverage = sampleDf['homeBackPrice'].mean()
-                self.oneStandardDev = sampleDf['homeBackPrice'].std(ddof=0)
-                # print(self.movingAverage)
-                
+                self.sampleDf = eventId.prices.loc[mask].resample('S', on='matchOddsTime')['homeBackPrice', 'homeLayPrice', 'awayBackPrice', 'awayLayPrice', 'drawBackPrice', 'drawLayPrice'].mean()
+
+                self.homeMovingAverage = self.sampleDf['homeBackPrice'].mean()
+                self.homeOneStandardDev = self.sampleDf['homeBackPrice'].std(ddof=0)
+                self.awayMovingAverage = self.sampleDf['awayBackPrice'].mean()
+                self.awayOneStandardDev = self.sampleDf['awayBackPrice'].std(ddof=0)
+
                 # Average of standard deviation
-                self.stdAverage = (self.oneStandardDev) + self.movingAverage
-                # stdAverageNp = np.array(self.stdAverage)            
+                self.homeStdAverage = (self.homeOneStandardDev) + self.homeMovingAverage   
+                self.awayStdAverage = (self.awayOneStandardDev) + self.awayMovingAverage    
 
                 # Upper and lower bollinger bands
-                self.upperBand = self.movingAverage + 2 * self.oneStandardDev
-                self.lowerBand = self.movingAverage - 2 * self.oneStandardDev
+                self.homeUpperBand = self.homeMovingAverage + 2 * self.homeOneStandardDev
+                self.homeLowerBand = self.homeMovingAverage - 2 * self.homeOneStandardDev
+                self.awayUpperBand = self.awayMovingAverage + 2 * self.awayOneStandardDev
+                self.awayLowerBand = self.awayMovingAverage - 2 * self.awayOneStandardDev
                 
                 # One standard deviation
-                self.upperStdDev  = self.movingAverage + 1 * self.oneStandardDev
-                self.lowerStdDev = self.movingAverage - 1 * self.oneStandardDev 
+                self.homeUpperStdDev  = self.homeMovingAverage + 1 * self.homeOneStandardDev
+                self.homeLowerStdDev = self.homeMovingAverage - 1 * self.homeOneStandardDev 
+                self.awayUpperStdDev  = self.awayMovingAverage + 1 * self.awayOneStandardDev
+                self.awayLowerStdDev = self.awayMovingAverage - 1 * self.awayOneStandardDev 
 
-                self.dfForAppending = pd.DataFrame([[self.rowIndex, self.movingAverage, self.oneStandardDev, self.upperBand, self.lowerBand,self.upperStdDev, self.lowerStdDev]],
-                                                    columns=['rowIndex', 'movingAverage', 'oneStandardDev', 'upperBand', 'lowerBand', 'upperStd', 'lowerStd'])
-                
+                self.dfForAppending = pd.DataFrame([[self.rowIndex, end, self.homeMovingAverage, self.homeOneStandardDev, self.homeUpperBand, self.homeLowerBand,self.homeUpperStdDev, self.homeLowerStdDev, 
+                                                     self.awayMovingAverage, self.awayOneStandardDev, self.awayUpperBand, self.awayLowerBand, self.awayUpperStdDev, self.awayLowerStdDev]],
+                                                    columns=['rowIndex', 'matchTime', 'homeMovingAverage', 'homeOneStandardDev', 'homeUpperBand', 'homeLowerBand', 'homeUpperStd', 'homeLowerStd',
+                                                             'awayMovingAverage', 'awayOneStandardDev', 'awayUpperBand', 'awayLowerBand', 'awayUpperStd', 'awayLowerStd'])
+
                 eventId.bollingerBandDict[f'{str(interval)}'] = eventId.bollingerBandDict[f'{str(interval)}']._append(self.dfForAppending)
 
                 BollingerBands.dataframeToCsv(self, intervals[j])
@@ -488,51 +468,59 @@ class Calculations:
                 return print('Bet Angel Api thinks market is still loaded in')
             
             for interval in intervals:
+                self.interval = interval
                 if (eventId.prices.iloc[-1:]['matchOddsTime'] - timedelta(seconds=interval)).values[0] - (eventId.prices.iloc[0:1]['matchOddsTime']).values[0] < interval:
                     return    
                 else:
                     matchStartTime = (eventId.prices.iloc[0:1]['matchOddsTime']).values[0]
-                    # print(math.ceil(((eventId.prices.iloc[-1:]['matchOddsTime'] - matchStartTime).values[0]).astype('float64')/1e9/60))
-                    minOfMatch = math.ceil(((eventId.prices.iloc[-1:]['matchOddsTime'] - matchStartTime).values[0]).astype('float64')/1e9/60)
-                    print('min >>>> ', minOfMatch)
-                    
-                    start = (eventId.prices.iloc[-1:]['matchOddsTime'] - timedelta(seconds=interval)).values[0]
-                    end = (eventId.prices.iloc[-1:]['matchOddsTime']).values[0]
-                    
-                    mask = (eventId.prices['matchOddsTime'] >= start) & (eventId.prices['matchOddsTime'] < end)
-                    maskHomePlusOne = (eventId.pricesPlusOneToHome['matchOddsTime'] >= start) & (eventId.pricesPlusOneToHome['matchOddsTime'] < end)
-                    maskAwayPlusOne = (eventId.pricesPlusOneToAway['matchOddsTime'] >= start) & (eventId.pricesPlusOneToAway['matchOddsTime'] < end)
-                    
-                    self.sampleMatchPrices = eventId.prices.loc[mask].resample('S', on='matchOddsTime')['homeBackPrice', 'homeLayPrice', 'awayBackPrice', 'awayLayPrice', 'drawBackPrice', 'drawLayPrice'].mean()
-                    self.sampleHomePlusOne = eventId.pricesPlusOneToHome.loc[maskHomePlusOne].resample('S', on='matchOddsTime')[f'{eventId.homeTeam}_back', f'{eventId.homeTeam}_lay', f'{eventId.awayTeam}_back', f'{eventId.awayTeam}_lay', 'drawBackPrice', 'drawLayPrice'].mean()
-                    self.sampleAwayPlusOne = eventId.pricesPlusOneToAway.loc[maskAwayPlusOne].resample('S', on='matchOddsTime')[f'{eventId.awayTeam}_back', f'{eventId.awayTeam}_lay', f'{eventId.homeTeam}_back', f'{eventId.homeTeam}_lay', 'drawBackPrice', 'drawLayPrice'].mean()
-                    
-                    print(self.sampleHomePlusOne)
-                    print(eventId.fixture)
 
-                   
-                    self.xgsForPeriod = xgForPeriod(self, matchStartTime, end)
-                    self.plusOneMovingAverages = plusOneMovingAverage(self, start, end)
-                    self.goalPriceMovements = pricesAtPeriodStart(self, start)
-                    self.h = averageLossHomeLayHomeGoal(self, start)
-                    self.a = averageGainHomeLayAwayGoal(self, start)
+                    self.minOfMatch = math.ceil(((eventId.prices.iloc[-1:]['matchOddsTime'] - matchStartTime).values[0]).astype('float64')/1e9/60)
+                    self.start = (eventId.prices.iloc[-1:]['matchOddsTime'] - timedelta(seconds=interval)).values[0]
+                    self.end = (eventId.prices.iloc[-1:]['matchOddsTime']).values[0]
+                    
+                    self.mask = (eventId.prices['matchOddsTime'] >= self.start) & (eventId.prices['matchOddsTime'] < self.end)
+                    self.bollingerMask = (eventId.bollingerBandDict[f'{str(self.interval)}']['matchTime'] >= self.start) & (eventId.bollingerBandDict[f'{str(self.interval)}']['matchTime'] < self.end)
+                    self.maskHomePlusOne = (eventId.pricesPlusOneToHome['matchOddsTime'] >= self.start) & (eventId.pricesPlusOneToHome['matchOddsTime'] < self.end)
+                    self.maskAwayPlusOne = (eventId.pricesPlusOneToAway['matchOddsTime'] >= self.start) & (eventId.pricesPlusOneToAway['matchOddsTime'] < self.end)
+                    
+                    self.sampleMatchPrices = eventId.prices.loc[self.mask].resample('S', on='matchOddsTime')['homeBackPrice', 'homeLayPrice', 'awayBackPrice', 'awayLayPrice', 'drawBackPrice', 'drawLayPrice'].mean()
+                    self.sampleHomePlusOne = eventId.pricesPlusOneToHome.loc[self.maskHomePlusOne].resample('S', on='matchOddsTime')[f'{eventId.homeTeam}_back', f'{eventId.homeTeam}_lay', f'{eventId.awayTeam}_back', f'{eventId.awayTeam}_lay', 'drawBackPrice', 'drawLayPrice'].mean()
+                    self.sampleAwayPlusOne = eventId.pricesPlusOneToAway.loc[self.maskAwayPlusOne].resample('S', on='matchOddsTime')[f'{eventId.awayTeam}_back', f'{eventId.awayTeam}_lay', f'{eventId.homeTeam}_back', f'{eventId.homeTeam}_lay', 'drawBackPrice', 'drawLayPrice'].mean()
+                
+                    self.homeBackAverage = self.sampleMatchPrices.iloc[-10:-1]['homeBackPrice'].mean()
+                    self.awayBackAverage = self.sampleMatchPrices.iloc[-10:-1]['awayBackPrice'].mean()
+                    
+                    self.homeUpperBand = eventId.bollingerBandDict[f'{str(self.interval)}'].iloc[-1:]['homeUpperBand'].values[0]
+   
+                    self.minOfIntervalStart = math.ceil(((self.sampleMatchPrices.iloc[0:1].index - matchStartTime).values[0]).astype('float64')/1e9/60)
+                    
+                    self.xgsForPeriod = xgForPeriod(self)
+                    self.plusOneMovingAverages = plusOneMovingAverage(self)
+                    self.goalPriceMovements = pricesAtPeriodStart(self)
+                    self.h = averageLossHomeLayHomeGoal(self)
+                    self.a = averageGainHomeLayAwayGoal(self)
                     self.totalLoss = averageLossForPeriodHomeLay(self, self.xgsForPeriod, self.h, self.a).values
-
 
                     bollingerBands(self)
                     self.breakEvenPrice = breakEvenCalcs(self)
+                    if placeBetCalcs(self) == True:
+                        if awayPriceGradient(self) == True:
+                            if homeVolatility(self) == True:
+                                if priceSpikes(self) == True:
+                                    return True
 
 
-        def xgForPeriod(self, matchStartTime, end):
+        def xgForPeriod(self):
             # Calculate the xg at the start and end of the interval to get the expected goals during that period
-            self.homeXgForPeriod = (xGRemaining(self.homeXg, self.sampleMatchPrices.iloc[:1]['homeBackPrice'])) - xGRemaining(self.homeXg, self.sampleMatchPrices.iloc[-1:]['homeBackPrice'])
-            self.awayXgForPeriod = (xGRemaining(self.awayXg, self.sampleMatchPrices.iloc[:1]['awayBackPrice'])) - xGRemaining(self.awayXg, self.sampleMatchPrices.iloc[-1:]['awayBackPrice'])
+            self.homeXgForPeriod = (xGRemaining(self.homeXg, self.minOfIntervalStart)) - xGRemaining(self.homeXg, self.minOfMatch)
+            self.awayXgForPeriod = (xGRemaining(self.awayXg, self.minOfIntervalStart)) - xGRemaining(self.awayXg, self.minOfMatch)
+            print(self.homeXgForPeriod, self.awayXgForPeriod)
             return self.homeXgForPeriod, self.awayXgForPeriod
         
         def xGRemaining(xg, minOfMatch):
             return ((1-((1/95*minOfMatch))**.84) * xg)
         
-        def plusOneMovingAverage(self, start, end):
+        def plusOneMovingAverage(self):
             
             self.movingAveragePlusOneToHome_homeBack = self.sampleHomePlusOne.iloc[0:-1][f'{eventId.homeTeam}_back'].mean()
             self.movingAveragePlusOneToHome_awayBack = self.sampleHomePlusOne.iloc[0:-1][f'{eventId.awayTeam}_back'].mean()
@@ -545,74 +533,79 @@ class Calculations:
             return self.movingAveragePlusOneToHome_homeBack, self.movingAveragePlusOneToHome_awayBack, self.movingAveragePlusOneToHome_drawBack, \
                     self.movingAveragePlusOneToHome_homeLay, self.movingAveragePlusOneToHome_awayLay, self.movingAveragePlusOneToHome_drawLay
         
-        def pricesAtPeriodStart(self, start):
+        def pricesAtPeriodStart(self):
             self.homeStartBackPrice = self.sampleMatchPrices.iloc[0:1]['homeBackPrice']
             self.awayStartBackPrice = self.sampleMatchPrices.iloc[0:1]['awayBackPrice']
             self.drawStartBackPrice = self.sampleMatchPrices.iloc[0:1]['drawBackPrice']
             return self.homeStartBackPrice, self.awayStartBackPrice, self.drawStartBackPrice
             
-        def averageLossHomeLayHomeGoal(self, start):
-            x = eventId.pricesPlusOneToHome.iloc[-1][f'{eventId.homeTeam}_back']-1
-            y = eventId.sampleMatchPrices['homeLayPrice']-1
-            z = eventId.pricesPlusOneToHome.iloc[-1][f'{eventId.homeTeam}_back']
+        def averageLossHomeLayHomeGoal(self,):
+            x = self.sampleHomePlusOne.iloc[-1][f'{eventId.homeTeam}_back']-1
+            y = self.sampleMatchPrices.iloc[0:1]['homeLayPrice']-1
+            z = self.sampleHomePlusOne.iloc[-1][f'{eventId.homeTeam}_back']
             return (x - y) / z
         
-        def averageGainHomeLayAwayGoal(self, start):
-            x = eventId.pricesPlusOneToAway.iloc[-1][f'{eventId.homeTeam}_back']-1
-            y = eventId.prices.iloc[start:start+1]['homeLayPrice']-1
-            z = eventId.pricesPlusOneToAway.iloc[-1][f'{eventId.homeTeam}_back']
+        def averageGainHomeLayAwayGoal(self):
+            x = self.sampleAwayPlusOne.iloc[-1][f'{eventId.homeTeam}_back']-1
+            y = self.sampleMatchPrices.iloc[0:1]['homeLayPrice']-1
+            z = self.sampleAwayPlusOne.iloc[-1][f'{eventId.homeTeam}_back']
             return (x - y) / z
             
         def averageLossForPeriodHomeLay(self, xgsForPeriod, h, a):
-            # print('~~~~~~~~~~~~~~~~~~~~')
-            # print(xgsForPeriod[0], '\n', xgsForPeriod[1], '\n', h, '\n', a, '\n')
-            # print('~~~~~~~~~~~~~~~~~~~~')
             return xgsForPeriod[0]*h + xgsForPeriod[1]*a
         
         def bollingerBands(self):
             self.bollingerBandDataframe = eventId.bollingerBandDict[f'{str(self.interval)}']
             return self.bollingerBandDataframe
-        
+ 
         def breakEvenCalcs(self):         
             self.breakEven = self.totalLoss
-            self.price = eventId.prices.iloc[self.start]['homeBackPrice']
-            self.initialPrice = eventId.prices.iloc[self.start]['homeBackPrice'] # Price at the start of the interval
+            self.price = self.sampleMatchPrices.iloc[0:1]['homeBackPrice']
+            self.initialPrice = self.sampleMatchPrices.iloc[0:1]['homeBackPrice'] # Price at the start of the interval
 
-            while self.breakEven < 0:
+            while self.breakEven[0] < 0:
                 self.price += 0.01 / 60
                 self.breakEven = self.breakEven + (((self.price-1) - (self.initialPrice-1)) / self.price)
-                # print(self.breakEven, self.price, self.start, self.end)
+                
             return self.price
                 
         def placeBetCalcs(self):
-            if self.homeBackAverage - self.price < 0:
-                return False
-            
-            if self.homeBackAverage - self.price >= 0:
-                ''' Change this to '-60' '''
-                self.homeBackAverage = mean(self.eventId.prices.iloc[self.minOfMatchSeconds-10: self.minOfMatchSeconds]['homeBackPrice']) # Average price over the last 60 seconds
-                self.awayBackAverage = mean(self.eventId.prices.iloc[self.minOfMatchSeconds-10: self.minOfMatchSeconds]['awayBackPrice']) # Average price over the last 60 seconds
-                
-                
-            
-            return
+            if self.homeBackAverage - self.price.values[0] < 0:
+                return True
+                '''return False'''
+            if self.homeBackAverage - self.price.values[0] >= 0:
+                return True
+                   
+        def awayPriceGradient(self):
+            self.awayGradientRange = eventId.prices.loc[self.mask].resample('S', on='matchOddsTime')['matchOddsTime','awayBackPrice'].mean()
+            # y=mx+c where y is the price and x is the time
+            self.awayGradient = (self.awayGradientRange.iloc[-1:]['awayBackPrice'].values[0] - self.awayGradientRange.iloc[0:1]['awayBackPrice'].values[0]) / \
+                                (self.awayGradientRange.iloc[-1:]['matchOddsTime'].values[0] - self.awayGradientRange.iloc[0:1]['matchOddsTime'].values[0]).astype('float64')/1e9/60
+
+            if self.awayGradient < 0:
+                return True
+            return True
+            '''return False'''
         
-        def priceSpikes(self, homeBackAverage, awayBackAverage):   
-            rangeValue = 10
+        def homeVolatility(self):
+            print(self.homeBackAverage, self.homeUpperBand)
+            if self.homeBackAverage < self.homeUpperBand:
+                return True
+            return True
+            '''return False'''
+        
+        def priceSpikes(self):   
+            spikePrice = self.homeBackAverage * 0.85
+            # Get the min and max prices during the interval
+            minPrice = self.sampleMatchPrices['homeBackPrice'].min()
+            maxPrice = self.sampleMatchPrices['homeBackPrice'].max()
             
-            if self.interval < 600:
-                rangeValue = int(self.interval)       
-            for s in range(self.rowIndex - rangeValue, rangeValue):
-                spikeTest = homeBackAverage * 0.85
-                if spikeTest > eventId.prices.iloc[self.rowIndex-1-s:self.rowIndex-s]['homeBackPrice'].values or spikeTest > eventId.prices.iloc[5]['homeBackPrice']:
-                    return False
-                if eventId.prices.iloc[self.rowIndex-1-s:self.rowIndex-s]['homeBackPrice'].values < self.bollingerBandDataframe.iloc[0:1]['movingAverage'].values:
-                    return False
+            if spikePrice > maxPrice or spikePrice < minPrice:
+                return False
+            if self.sampleMatchPrices.iloc[-1:]['homeBackPrice'] < self.bollingerBandDataframe.iloc[-1:].values[0]:
+                return False
             return True
             
-        def rateOfChange(self, totalLoss):
-                   
-            return
             
         goalCalculations(self, eventId, intervals)
         

@@ -1,3 +1,5 @@
+''' Betfair names '''
+
 countries = {
     "Arsenal":"England",
     "Aston Villa":"England",
@@ -72,6 +74,30 @@ countries = {
     "Wigan":"England",
     "Wycombe":"England",
 
+    "AFC Wimbledon":"England",
+    "Accrington":"England",
+    "Barrow":"England",
+    "Bradford":"England",
+    "Colchester":"England",
+    "Crawley":"England",
+    "Crewe":"England",
+    "Doncaster":"England",
+    "Forest Green":"England",
+    "Gillingham":"England",
+    "Grimsby":"England",
+    "Harrogate Town":"England",
+    "Mansfield":"England",
+    "MK Dons":"England",
+    "Morecambe":"England",
+    "Newport County":"England",
+    "Notts Co":"England",
+    "Salford City":"England",
+    "Stockport":"England",
+    "Sutton Utd":"England",
+    "Swindon":"England",
+    "Tranmere":"England",
+    "Walsall":"England",
+    "Wrexham":"England",
 
     "Alaves":"Spain",
     "Almeria":"Spain",

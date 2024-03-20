@@ -95,7 +95,7 @@ if __name__ == '__main__':
     # worker0.start()
     workerFunction0()
     
-    worker1 = PeriodicThread(workerFunction1, interval=.5)
+    worker1 = PeriodicThread(workerFunction1, interval=0.25)
     worker1.start()
        
     worker2 = PeriodicThread(workerFunction2, interval=60)
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     # worker3.start()
     
     worker4 = PeriodicThread(workerFunction4, interval=1)
-    # worker4.start()
+    worker4.start()
    
           
     try:
