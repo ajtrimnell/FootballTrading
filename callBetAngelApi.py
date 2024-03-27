@@ -8,6 +8,7 @@ import math
 from statistics import mean
 
 from teamsCountries import *
+from placeBet import *
 from callBetfair import CallBetfair
 
 
@@ -378,18 +379,27 @@ class BollingerBands:
     def __init__(self, eventId, intervals):
         self.eventId = eventId
         self.time = eventId.matchOddsTime
+        
         self.prices = eventId.prices
         self.homePrices = eventId.homeBackPrice
+        self.awayPrices = eventId.awayBackPrice
 
         self.rowIndex = eventId.rowIndex
-        self.movingAverage = None
-        self.oneStandardDev = None
-        self.upperStdDev = None
-        self.lowerStdDev = None
+        
+        self.homeMovingAverage = None
+        self.homeOneStandardDev = None
+        self.homeUpperStdDev = None
+        self.homeLowerStdDev = None
+        
+        self.awayMovingAverage = None
+        self.awayOneStandardDev = None
+        self.awayUpperStdDev = None
+        self.awayLowerStdDev = None
+        
         ''' CHANGE THIS BACK TO FALSE'''
-        if self.eventId.isInPlay == False: 
-            # return print('Match not yet inplay')
-            return None
+        # if self.eventId.isInPlay == False: 
+        #     # return print('Match not yet inplay')
+        #     return None
 
         BollingerBands.loopThroughIntervals(self, eventId, intervals)
 
@@ -455,10 +465,6 @@ class Calculations:
         
         self.homeXgForPeriod = None
         self.awayXgForPeriod = None
-        self.totalLoss = 0
-        self.breakEven = self.totalLoss
-        
-        self.bollingerBandDataframe = None
     
         def goalCalculations(self, eventId, intervals):        
             # Sometimes, when markets are deleted from Bet Angel Guardian, they still appear when the markets are pulled in via the api.
@@ -491,24 +497,43 @@ class Calculations:
                     self.awayBackAverage = self.sampleMatchPrices.iloc[-10:-1]['awayBackPrice'].mean()
                     
                     self.homeUpperBand = eventId.bollingerBandDict[f'{str(self.interval)}'].iloc[-1:]['homeUpperBand'].values[0]
+                    self.awayUpperBand = eventId.bollingerBandDict[f'{str(self.interval)}'].iloc[-1:]['awayUpperBand'].values[0]
    
                     self.minOfIntervalStart = math.ceil(((self.sampleMatchPrices.iloc[0:1].index - matchStartTime).values[0]).astype('float64')/1e9/60)
                     
                     self.xgsForPeriod = xgForPeriod(self)
                     self.plusOneMovingAverages = plusOneMovingAverage(self)
                     self.goalPriceMovements = pricesAtPeriodStart(self)
-                    self.h = averageLossHomeLayHomeGoal(self)
-                    self.a = averageGainHomeLayAwayGoal(self)
-                    self.totalLoss = averageLossForPeriodHomeLay(self, self.xgsForPeriod, self.h, self.a).values
+                    
+                    ''' Lay bet placed on home team '''
+                    self.homeLay_homeGoal = profitOrLossIfGoal(self, self.sampleHomePlusOne, eventId.homeTeam, 'homeLayPrice')
+                    self.homeLay_awayGoal = profitOrLossIfGoal(self, self.sampleAwayPlusOne, eventId.homeTeam, 'homeLayPrice')
+                    
+                    ''' Lay bet placed on away team '''
+                    self.awayLay_homeGoal = profitOrLossIfGoal(self, self.sampleHomePlusOne, eventId.awayTeam, 'awayLayPrice')
+                    self.awayLay_awayGoal = profitOrLossIfGoal(self, self.sampleAwayPlusOne, eventId.awayTeam, 'awayLayPrice')
+                           
+                    self.totalLossHomeLay = averageLossForPeriodHomeLay(self.xgsForPeriod, self.homeLay_homeGoal, self.homeLay_awayGoal).values
+                    self.totalLossAwayLay = averageLossForPeriodAwayLay(self.xgsForPeriod, self.awayLay_homeGoal, self.awayLay_awayGoal).values
 
-                    bollingerBands(self)
-                    self.breakEvenPrice = breakEvenCalcs(self)
-                    if placeBetCalcs(self) == True:
-                        if awayPriceGradient(self) == True:
-                            if homeVolatility(self) == True:
-                                if priceSpikes(self) == True:
-                                    return True
-
+                    self.bollingerBandDataframe = bollingerBands(self)
+                    self.breakEvenPriceHomeLay = breakEvenCalcsHomeLay(self)
+                    self.breakEvenPriceAwayLay = breakEvenCalcsAwayLay(self)
+                    
+                    self.homeLayOpportunity = checkForOpportunity(self, self.homeBackAverage, self.priceHomeLay, self.homeUpperBand, 'homeBackPrice', 'homeMovingAverage', 'awayBackPrice')
+                    self.awayLayOpportunity = checkForOpportunity(self, self.awayBackAverage, self.priceAwayLay, self.awayUpperBand, 'awayBackPrice', 'awayMovingAverage', 'homeBackPrice')
+        
+                    if self.homeLayOpportunity == False:
+                        CheckMarketBets(1.226299557, 'ALL').getBets()
+        
+        def checkForOpportunity(self, teamBackAverage, priceTeamLay, teamUpperBand, teamBackPrice, teamMovingAverage, otherTeamBackPrice):
+            if placeBetCalcs(teamBackAverage, priceTeamLay) == True:
+                if otherTeamPriceGradient(otherTeamBackPrice) == True:
+                    if teamVolatility(teamBackAverage, teamUpperBand) == True:   
+                        if priceSpikes(self, teamBackAverage, teamBackPrice, teamMovingAverage) == True:
+                            print('It worked')      
+                            return True
+            return False
 
         def xgForPeriod(self):
             # Calculate the xg at the start and end of the interval to get the expected goals during that period
@@ -521,7 +546,6 @@ class Calculations:
             return ((1-((1/95*minOfMatch))**.84) * xg)
         
         def plusOneMovingAverage(self):
-            
             self.movingAveragePlusOneToHome_homeBack = self.sampleHomePlusOne.iloc[0:-1][f'{eventId.homeTeam}_back'].mean()
             self.movingAveragePlusOneToHome_awayBack = self.sampleHomePlusOne.iloc[0:-1][f'{eventId.awayTeam}_back'].mean()
             self.movingAveragePlusOneToHome_drawBack = self.sampleHomePlusOne.iloc[0:-1]['drawBackPrice'].mean()
@@ -539,74 +563,80 @@ class Calculations:
             self.drawStartBackPrice = self.sampleMatchPrices.iloc[0:1]['drawBackPrice']
             return self.homeStartBackPrice, self.awayStartBackPrice, self.drawStartBackPrice
             
-        def averageLossHomeLayHomeGoal(self,):
+        def profitOrLossIfGoal(self, plusOneMarket, team, pricesDfColumn):
+            x = plusOneMarket.iloc[-1][f'{team}_back']-1
+            y = self.sampleMatchPrices.iloc[0:1][pricesDfColumn]-1
+            z = plusOneMarket.iloc[-1][f'{team}_back']
+            ''' Example
             x = self.sampleHomePlusOne.iloc[-1][f'{eventId.homeTeam}_back']-1
             y = self.sampleMatchPrices.iloc[0:1]['homeLayPrice']-1
             z = self.sampleHomePlusOne.iloc[-1][f'{eventId.homeTeam}_back']
-            return (x - y) / z
-        
-        def averageGainHomeLayAwayGoal(self):
-            x = self.sampleAwayPlusOne.iloc[-1][f'{eventId.homeTeam}_back']-1
-            y = self.sampleMatchPrices.iloc[0:1]['homeLayPrice']-1
-            z = self.sampleAwayPlusOne.iloc[-1][f'{eventId.homeTeam}_back']
+            '''
             return (x - y) / z
             
-        def averageLossForPeriodHomeLay(self, xgsForPeriod, h, a):
-            return xgsForPeriod[0]*h + xgsForPeriod[1]*a
+        def averageLossForPeriodHomeLay(xgsForPeriod, homeLay_homeGoal, homeLay_awayGoal):
+            return xgsForPeriod[0]*homeLay_homeGoal + xgsForPeriod[1]*homeLay_awayGoal
+        
+        def averageLossForPeriodAwayLay(xgsForPeriod, awayLay_homeGoal, awayLay_awayGoal):
+            return xgsForPeriod[0]*awayLay_homeGoal + xgsForPeriod[1]*awayLay_awayGoal
         
         def bollingerBands(self):
             self.bollingerBandDataframe = eventId.bollingerBandDict[f'{str(self.interval)}']
             return self.bollingerBandDataframe
  
-        def breakEvenCalcs(self):         
-            self.breakEven = self.totalLoss
-            self.price = self.sampleMatchPrices.iloc[0:1]['homeBackPrice']
+        def breakEvenCalcsHomeLay(self):         
+            self.breakEvenHomeLay = self.totalLossHomeLay
+            self.priceHomeLay = self.sampleMatchPrices.iloc[0:1]['homeBackPrice']
             self.initialPrice = self.sampleMatchPrices.iloc[0:1]['homeBackPrice'] # Price at the start of the interval
-
-            while self.breakEven[0] < 0:
-                self.price += 0.01 / 60
-                self.breakEven = self.breakEven + (((self.price-1) - (self.initialPrice-1)) / self.price)
-                
-            return self.price
-                
-        def placeBetCalcs(self):
-            if self.homeBackAverage - self.price.values[0] < 0:
-                return True
-                '''return False'''
-            if self.homeBackAverage - self.price.values[0] >= 0:
-                return True
-                   
-        def awayPriceGradient(self):
-            self.awayGradientRange = eventId.prices.loc[self.mask].resample('S', on='matchOddsTime')['matchOddsTime','awayBackPrice'].mean()
-            # y=mx+c where y is the price and x is the time
-            self.awayGradient = (self.awayGradientRange.iloc[-1:]['awayBackPrice'].values[0] - self.awayGradientRange.iloc[0:1]['awayBackPrice'].values[0]) / \
-                                (self.awayGradientRange.iloc[-1:]['matchOddsTime'].values[0] - self.awayGradientRange.iloc[0:1]['matchOddsTime'].values[0]).astype('float64')/1e9/60
-
-            if self.awayGradient < 0:
-                return True
-            return True
-            '''return False'''
+            while self.breakEvenHomeLay[0] < 0:
+                self.breakEvenHomeLay += 0.01 / 60
+                self.breakEvenHomeLay = self.breakEvenHomeLay + (((self.HomeLay-1) - (self.initialPrice-1)) / self.HomeLay)
+            return self.breakEvenHomeLay
         
-        def homeVolatility(self):
-            print(self.homeBackAverage, self.homeUpperBand)
-            if self.homeBackAverage < self.homeUpperBand:
+        def breakEvenCalcsAwayLay(self):
+            self.breakEvenAwayLay = self.totalLossAwayLay
+            self.priceAwayLay = self.sampleMatchPrices.iloc[0:1]['awayBackPrice']
+            self.initialPrice = self.sampleMatchPrices.iloc[0:1]['awayBackPrice'] # Price at the start of the interval
+            while self.breakEvenAwayLay[0] < 0:
+                self.priceAwayLay += 0.01 / 60
+                self.breakEvenAwayLay = self.breakEvenAwayLay + (((self.AwayLay-1) - (self.initialPrice-1)) / self.AwayLay)
+            return self.priceAwayLay
+                
+        def placeBetCalcs(teamBackAverage, priceTeamLay):
+            if teamBackAverage - priceTeamLay.values[0] < 0:
+                # return True
+                return False
+            if teamBackAverage - priceTeamLay.values[0] >= 0:
                 return True
-            return True
-            '''return False'''
-        
-        def priceSpikes(self):   
-            spikePrice = self.homeBackAverage * 0.85
+
+        def otherTeamPriceGradient(teamBackPrice):
+            teamGradientRange = eventId.prices.loc[self.mask].resample('S', on='matchOddsTime')['matchOddsTime',f'{teamBackPrice}'].mean()
+            teamGradient = (teamGradientRange.iloc[-1:][f'{teamBackPrice}'].values[0] - teamGradientRange.iloc[0:1][f'{teamBackPrice}'].values[0]) / \
+                            (teamGradientRange.iloc[-1:]['matchOddsTime'].values[0] - teamGradientRange.iloc[0:1]['matchOddsTime'].values[0]).astype('float64')/1e9/60
+            if teamGradient < 0:
+                return True
+            # return True
+            return False
+
+        def teamVolatility(teamBackAverage, teamUpperBand):
+            if teamBackAverage < teamUpperBand:
+                return True
+            # return True
+            return False
+
+        def priceSpikes(self, teamBackAverage, teamBackPrice, teamMovingAverage):
+            spikePriceUp = teamBackAverage * 1.15
+            spikePriceDown = teamBackAverage * 0.85
             # Get the min and max prices during the interval
-            minPrice = self.sampleMatchPrices['homeBackPrice'].min()
-            maxPrice = self.sampleMatchPrices['homeBackPrice'].max()
+            minPrice = self.sampleMatchPrices[f'{teamBackPrice}'].min()
+            maxPrice = self.sampleMatchPrices[f'{teamBackPrice}'].max()
             
-            if spikePrice > maxPrice or spikePrice < minPrice:
+            if maxPrice > spikePriceUp or minPrice < spikePriceDown:
                 return False
-            if self.sampleMatchPrices.iloc[-1:]['homeBackPrice'] < self.bollingerBandDataframe.iloc[-1:].values[0]:
+            if self.sampleMatchPrices.iloc[-1:][f'{teamBackPrice}'].values[0] < self.bollingerBandDataframe.iloc[-1:][f'{teamMovingAverage}'].values[0]:
                 return False
             return True
-            
-            
+
         goalCalculations(self, eventId, intervals)
         
 

@@ -150,6 +150,28 @@ teamsDictionary = {
             "Valencia":"Valencia",
             "Villarreal":"Villarreal"
         },	
+        141:{
+            "Amorebieta":"Albacete",
+            "Burgos":"Burgos",
+            "Eibar":"Eibar",
+            "Elche":"Elche",
+            "Eldense":"Eldense",
+            "Espanyol":"Espanyol",
+            "FCAndorra":"FC Andorra",
+            "FCCartagena":"FC Cartagena",
+            "Huesca":"Huesca",
+            "Leganes":"Leganes",
+            "Levante":"Levante",
+            "Mirandes":"Mirandes",
+            "Oviedo":"Oviedo",
+            "RacingFerrol":"Racing de Ferrol",
+            "RacingSantander":"Racing Santander",
+            "SportingGijon":"Sporting Gijon",
+            "Tenerife":"Tenerife",
+            "Valladolid":"Valladolid",
+            "VillarrealII":"Villarreal II",
+            "Zaragoza":"Zaragoza"
+        },
         135:{	
             "AC Milan":"AC Milan",
             "AS Roma":"Roma",
