@@ -22,7 +22,8 @@ class CallBetfair:
     def marketPrices(self):
         endpoint = "getStoredValues"
         dataRequired = '{"marketsFilter":{"filter":"ALL"},"selectionsFilter":{"filter":"ALL"},"storedValueFilterBetAngelLevel":{"storedValueFilter":"ALL","excludeSharedValues":true},"storedValueFilterEventLevel":{"storedValueFilter":"ALL","excludeSharedValues":true},"storedValueFilterMarketLevel":{"storedValueFilter":"ALL","excludeSharedValues":true},"storedValueFilterSelectionLevel":{"storedValueFilter":"ALL","excludeSharedValues":true}}'
-        return CallBetfair.request(endpoint, dataRequired, self.matchOddsPort, 'automation').get('result',{}).get('markets')
+        return CallBetfair.request(endpoint, dataRequired, self.matchOddsPort, 'automation')
+    # .get('result',{}).get('markets')
     
     def plusOneMarkets(self):
         endpoint = "getMarkets"      
