@@ -1,11 +1,9 @@
 import pandas as pd
-from main import matchObjectsList, betAngelApiObject
 
 class MatchPrices:
 
-    def __init__(self, now):
+    def __init__(self, now, betAngelApiObject, matchObjectsList):
         self.latestOdds = betAngelApiObject.marketPrices()
-        self.marketLatestOdds = None
         self.now = now
              
         ''' Check if the market has finished and is now closed'''
@@ -13,33 +11,34 @@ class MatchPrices:
             for odds in self.latestOdds['result']['markets']:
                 for match in matchObjectsList:
                     if match.id == odds.get('id') and self.latestOdds.get('status') != 'CLOSED': 
-                        pricesMatchOdds(match, odds)
+                        MatchPrices.pricesMatchOdds(self, match, odds)
                         MatchPrices.dataframeToCsv(self, match) 
                         return
-
-        def pricesMatchOdds(match, odds):
-            self.dfToAppend = pd.DataFrame([[self.now, match.rowIndex, 
-                                odds.get('selections', {})[0].get('instances')[0].get('values')[0].get('v'),
-                                odds.get('selections', {})[0].get('instances')[0].get('values')[1].get('v'),
-                                odds.get('selections', {})[1].get('instances')[0].get('values')[0].get('v'),
-                                odds.get('selections', {})[1].get('instances')[0].get('values')[1].get('v'),
-                                odds.get('selections', {})[2].get('instances')[0].get('values')[0].get('v'),
-                                odds.get('selections', {})[2].get('instances')[0].get('values')[1].get('v')]],
-                                columns=['matchOddsTime', 'rowIndex', 'homeBackPrice', 'homeLayPrice', 'awayBackPrice', 'awayLayPrice', 'drawBackPrice', 'drawLayPrice'])
-
-            match.prices = pd.concat([match.prices, self.dfToAppend])
-            match.rowIndex += 1
-            return 
-
+                    
         currentMatchOdds(self)
-           
+        
+            
+    def pricesMatchOdds(self, match, odds):
+        self.dfToAppend = pd.DataFrame([[self.now, match.rowIndex, 
+                            odds.get('selections', {})[0].get('instances')[0].get('values')[0].get('v'),
+                            odds.get('selections', {})[0].get('instances')[0].get('values')[1].get('v'),
+                            odds.get('selections', {})[1].get('instances')[0].get('values')[0].get('v'),
+                            odds.get('selections', {})[1].get('instances')[0].get('values')[1].get('v'),
+                            odds.get('selections', {})[2].get('instances')[0].get('values')[0].get('v'),
+                            odds.get('selections', {})[2].get('instances')[0].get('values')[1].get('v')]],
+                            columns=['matchOddsTime', 'rowIndex', 'homeBackPrice', 'homeLayPrice', 'awayBackPrice', 'awayLayPrice', 'drawBackPrice', 'drawLayPrice'])
+
+        match.prices = pd.concat([match.prices, self.dfToAppend])
+        match.rowIndex += 1
+        return 
+  
     def dataframeToCsv(self, match):
         self.dfToAppend.to_csv(f'./tempFiles/{match.fixture}_prices.csv', mode='a', header=False, index=False)
 
 
 class MatchOddsPlusOne:
     
-    def __init__(self, now):
+    def __init__(self, now, betAngelApiObject, matchObjectsList):
         self.plusOneMarkets = betAngelApiObject.plusOneMarkets()
         self.latestOddsPlusOne = betAngelApiObject.plusOneMarketPrices()
         self.now = now
@@ -47,7 +46,7 @@ class MatchOddsPlusOne:
         def marketChanges(self):
             for match in matchObjectsList:
                 if match.plusOneToHomeId == None and match.plusOneToHomeId == None:
-                    MatchOddsPlusOne.matchMarketIds(self)
+                    MatchOddsPlusOne.matchMarketIds(self, matchObjectsList)
         
         def currentMatchOddsPlusOne(self):
             for odds in self.latestOddsPlusOne:
@@ -102,7 +101,7 @@ class MatchOddsPlusOne:
         marketChanges(self)
         currentMatchOddsPlusOne(self)
     
-    def matchMarketIds(self):
+    def matchMarketIds(self, matchObjectsList):
             for market in self.plusOneMarkets:
                 for match in matchObjectsList:
                     if market['eventId'] == match.eventId:

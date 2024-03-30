@@ -19,11 +19,20 @@ class CallBetfair:
         dataRequired = '{"dataRequired":["ID","NAME","MARKET_START_TIME","MARKET_INPLAY_STATUS","EVENT_ID","EVENT_TYPE_ID","MARKET_TYPE","SELECTION_IDS","SELECTION_NAMES"]}' 
         return (CallBetfair.request(endpoint, dataRequired, self.matchOddsPort, 'markets')).get('result',{}).get('markets')
     
+    # Market prices are returned from the stored values in Bet Angel
     def marketPrices(self):
         endpoint = "getStoredValues"
         dataRequired = '{"marketsFilter":{"filter":"ALL"},"selectionsFilter":{"filter":"ALL"},"storedValueFilterBetAngelLevel":{"storedValueFilter":"ALL","excludeSharedValues":true},"storedValueFilterEventLevel":{"storedValueFilter":"ALL","excludeSharedValues":true},"storedValueFilterMarketLevel":{"storedValueFilter":"ALL","excludeSharedValues":true},"storedValueFilterSelectionLevel":{"storedValueFilter":"ALL","excludeSharedValues":true}}'
         return CallBetfair.request(endpoint, dataRequired, self.matchOddsPort, 'automation')
-    # .get('result',{}).get('markets')
+    
+    # Return all stored values except for the market prices. Stored values being returned are marked as 'shared' in Bet Angel
+    def storedValues(self, marketId):
+        endpoint = "getStoredValues"
+        # dataRequired = '{"marketsFilter":{"filter":"ALL"},"selectionsFilter":{"filter":"ALL"},"storedValueFilterBetAngelLevel":{"storedValueFilter":"ALL","excludeInstanceValues":true},"storedValueFilterEventLevel":{"storedValueFilter":"ALL","excludeInstanceValues":true},"storedValueFilterMarketLevel":{"storedValueFilter":"ALL","excludeInstanceValues":true},"storedValueFilterSelectionLevel":{"storedValueFilter":"ALL","excludeInstanceValues":true}}'
+        
+        dataRequired = f'{{"marketsFilter":{{"filter":"SPECIFIED_IDS","ids":["{marketId}"]}},"selectionsFilter":{{"filter":"ALL"}},"storedValueFilterMarketLevel":{{"storedValueFilter":"ALL","excludeInstanceValues":true}},"storedValueFilterSelectionLevel":{{"storedValueFilter":"ALL","excludeInstanceValues":true}}}}'
+        
+        return CallBetfair.request(endpoint, dataRequired, self.matchOddsPort, 'automation')
     
     def plusOneMarkets(self):
         endpoint = "getMarkets"      

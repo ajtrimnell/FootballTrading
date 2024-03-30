@@ -33,7 +33,7 @@ class BollingerBands:
     ''' Create Bollingger bands for each time interval in the intervals list'''
     def loopThroughIntervals(self, eventId, intervals):
         self.eventId = eventId
-        # print(self.prices)
+       
         j = 0
         for interval in intervals:
             if (eventId.prices.iloc[-1:]['matchOddsTime'] - timedelta(seconds=interval)).values[0] - (eventId.prices.iloc[0:1]['matchOddsTime']).values[0] < interval:

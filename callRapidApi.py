@@ -4,7 +4,7 @@ import json
 
 from teamsDictionary import teamsDictionary
 
-class RapidApi:
+class CallRapidApi:
     
     def __init__(self, date, league, season):   
         self.date = date

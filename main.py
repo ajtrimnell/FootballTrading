@@ -2,11 +2,12 @@ from threading import Thread, Event
 from time import sleep
 from datetime import datetime
 
-from callBetAngelApi import *
-from callRapidApi import *
+from callRapidApi import CallRapidApi
 from callBetfair import CallBetfair
 from match import Match
 from bollingerBands import BollingerBands
+from calculations import Calculations
+from matchPrices import MatchPrices, MatchOddsPlusOne
 
 from teamsCountries import *
 
@@ -41,9 +42,6 @@ def matchObjects(betAngelApiObject):
             matchObjectsList.append(Match(match.get('id'), match.get('eventId'), match.get('name'), match.get('startTime'), match.get('selections'), match.get('inPlay')))
     return matchObjectsList
 
-betAngelApiObject = createBetAngelApiObject()
-matchObjectsList = matchObjects(betAngelApiObject)
-
 
 class PeriodicThread(Thread):
 
@@ -66,7 +64,7 @@ class PeriodicThread(Thread):
 def workerFunction0():
     # Call Rapid Api to get todays fixtures and add Rapid Api event id to match objects.
     for league in leagues:   
-        result = RapidApi(today, league, '2023').todaysFixtures()['response']
+        result = CallRapidApi(today, league, '2023').todaysFixtures()['response']
         for i in range(0, len(result)):
             country = result[i]['league']['country']
             teamsInCountry = teams[f'{country}']
@@ -78,25 +76,16 @@ def workerFunction0():
                     match.rapidApiId = result[i]['fixture']['id']
                     break
                       
-''' Continously updates prices data '''
+''' Continously updates prices and bollinger data '''
 def workerFunction1():
-    # Stating a class name and the putting () after it will create an instance of that class.
     now = datetime.now().replace(microsecond=0)
-    MatchPrices(now)
-    MatchOddsPlusOne(now)
+    MatchPrices(now, betAngelApiObject, matchObjectsList)
+    MatchOddsPlusOne(now, betAngelApiObject, matchObjectsList)
     for match in matchObjectsList:
         BollingerBands(match, intervals)
-        Calculations(match, intervals)
+        Calculations(match, intervals, betAngelApiObject, matchObjectsList)
+        
 
-# ''' Continously updates bollinger data '''
-# def workerFunction1a():
-#     # Stating a class name and the putting () after it will create an instance of that class.
-#     # now = datetime.now().replace(microsecond=0)
-#     # MatchPrices(now)
-#     # MatchOddsPlusOne(now)
-#     for match in matchObjectsList:
-#         BollingerBands(match, intervals)
-#         Calculations(match, intervals)
         
 ''' Update xg attributes when a market has less than 120 seconds until start time'''
 def workerFunction2():
@@ -109,7 +98,7 @@ def workerFunction3():
     # Call Rapid Api to get the current goals for each team and update the match objects.
     # Rapid Api event id is used as the identifier to find the correct match object.
     for league in leagues:
-        result = RapidApi(today, league, '2023').inplayMatches()['response']
+        result = CallRapidApi(today, league, '2023').inplayMatches()['response']
         for i in range(0, len(result)):
             rapidApiEventId = result[i]['fixture']['id']
             for match in matchObjectsList:
@@ -133,6 +122,10 @@ today = todaysDate()
               
 if __name__ == '__main__':
     
+    intervals = [10,300,360,420,480,540,600,660,720,780,840,960,1020,1080,1140,1200]   
+    betAngelApiObject = createBetAngelApiObject()
+    matchObjectsList = matchObjects(betAngelApiObject)
+    
     # worker0 = PeriodicThread(workerFunction0, interval=1)
     # worker0.start()
     workerFunction0()
@@ -140,9 +133,6 @@ if __name__ == '__main__':
     
     worker1 = PeriodicThread(workerFunction1, interval=0.25)
     worker1.start()
-    
-    # worker1a = PeriodicThread(workerFunction1a, interval=0.25)
-    # worker1a.start()
        
     worker2 = PeriodicThread(workerFunction2, interval=60)
     worker2.start()
@@ -162,7 +152,6 @@ if __name__ == '__main__':
         
         # worker0.terminate()
         worker1.terminate()
-        # worker1a.terminate()
         worker2.terminate()
         worker3.terminate()
         worker4.terminate()
