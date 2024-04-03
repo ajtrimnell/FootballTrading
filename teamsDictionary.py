@@ -216,7 +216,7 @@ teamsDictionary = {
         },
         61:{	
             "Clermont Foot":"Clermont",
-            "LE Havre":"Havre",
+            "Le Havre":"Le Havre",
             "Lens":"Lens",
             "Lille":"Lille",
             "Lorient":"Lorient",

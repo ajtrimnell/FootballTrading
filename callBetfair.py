@@ -28,10 +28,7 @@ class CallBetfair:
     # Return all stored values except for the market prices. Stored values being returned are marked as 'shared' in Bet Angel
     def storedValues(self, marketId):
         endpoint = "getStoredValues"
-        # dataRequired = '{"marketsFilter":{"filter":"ALL"},"selectionsFilter":{"filter":"ALL"},"storedValueFilterBetAngelLevel":{"storedValueFilter":"ALL","excludeInstanceValues":true},"storedValueFilterEventLevel":{"storedValueFilter":"ALL","excludeInstanceValues":true},"storedValueFilterMarketLevel":{"storedValueFilter":"ALL","excludeInstanceValues":true},"storedValueFilterSelectionLevel":{"storedValueFilter":"ALL","excludeInstanceValues":true}}'
-        
         dataRequired = f'{{"marketsFilter":{{"filter":"SPECIFIED_IDS","ids":["{marketId}"]}},"selectionsFilter":{{"filter":"ALL"}},"storedValueFilterMarketLevel":{{"storedValueFilter":"ALL","excludeInstanceValues":true}},"storedValueFilterSelectionLevel":{{"storedValueFilter":"ALL","excludeInstanceValues":true}}}}'
-        
         return CallBetfair.request(endpoint, dataRequired, self.matchOddsPort, 'automation')
     
     def plusOneMarkets(self):

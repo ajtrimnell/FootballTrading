@@ -62,9 +62,12 @@ class Betting:
         self.currentNetPosition = self.currentGreeningProfitOrLoss - self.currentMarketLiability
         return 
 
+    
 
-
-
+    # def placeBets(self):
+        
+        
+        
 # x = Betting('1.225968849').getMarketBets()
 
 

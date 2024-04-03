@@ -5,15 +5,17 @@ class MatchPrices:
     def __init__(self, now, betAngelApiObject, matchObjectsList):
         self.latestOdds = betAngelApiObject.marketPrices()
         self.now = now
-             
+
         ''' Check if the market has finished and is now closed'''
         def currentMatchOdds(self):
             for odds in self.latestOdds['result']['markets']:
                 for match in matchObjectsList:
-                    if match.id == odds.get('id') and self.latestOdds.get('status') != 'CLOSED': 
+                    if match.id == odds.get('id') and match.isInPlay == True: 
                         MatchPrices.pricesMatchOdds(self, match, odds)
                         MatchPrices.dataframeToCsv(self, match) 
-                        return
+                        break
+                    else:
+                        continue
                     
         currentMatchOdds(self)
         
@@ -51,10 +53,10 @@ class MatchOddsPlusOne:
         def currentMatchOddsPlusOne(self):
             for odds in self.latestOddsPlusOne:
                 for match in matchObjectsList:
-                    if match.plusOneToHomeId == odds.get('id') and odds.get('status') != 'CLOSED': 
+                    if match.plusOneToHomeId == odds.get('id') and match.isInPlay == True: 
                         pricesHomeTeamPlusOne(match, odds, match.homeTeam)
                         break
-                    if match.plusOneToAwayId == odds.get('id') and odds.get('status') != 'CLOSED': 
+                    if match.plusOneToAwayId == odds.get('id') and match.isInPlay == True: 
                         pricesAwayTeamPlusOne(match, odds, match.awayTeam)
                         break        
         
@@ -113,11 +115,13 @@ class MatchOddsPlusOne:
     
     # Assign the market ids of the plus one markets to the 'plusOneToHomeId' and 'plusOneToAwayId' properties in the match object.
     def assignMarketIds(market, match):
-        name = MatchOddsPlusOne.splitMarketName(market) 
-        if name == match.homeTeam:
+        name = MatchOddsPlusOne.splitMarketName(market).lower()
+        print(name, match.homeTeam, match.awayTeam)
+        
+        if name == match.homeTeam.lower():
             match.plusOneToHomeId = market['id']
             return
-        if name == match.awayTeam:
+        if name == match.awayTeam.lower():
             match.plusOneToAwayId = market['id']
             return
     

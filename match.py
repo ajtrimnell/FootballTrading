@@ -16,6 +16,7 @@ class Match:
         self.plusOneToAwayId = None
         self.eventId = eventId  # Betfair event id
         self.rapidApiId = None # Rapid Api event id
+        self.matchStatus = 'NS' # Rapid Api match status - NS, 1H, HT, 2H, FT
         
         self.fixture = fixture # Fixture name (formatted)
         self.csFixture = fixture # For getting correct score csv file
@@ -34,12 +35,27 @@ class Match:
         self.dateTimeObject = None
         
         self.isInPlay = isInPlay
+        # self.isInPlay = True
+        # Which goal markets are still open
+        self.under05 = True
+        self.under15 = True
+        self.under25 = True
+        self.under35 = True
+        self.under45 = True
+        self.under55 = True
+        self.under65 = True
+        self.under75 = True
+        self.under85 = True
 
         self.matchMinute = 0
         self.timeElapsedOk = False
-        self.matchScore = (0,0)
+        self.goalCount = 0
+        self.matchScoreList = []
         self.homeGoals = None
         self.awayGoals = None
+        
+        self.homeGoalsTimes = []
+        self.awayGoalsTimes = []
          
         self.homeXg = None
         self.awayXg = None
@@ -76,6 +92,9 @@ class Match:
             return self.fixture, self.csFixture
         
         def matchDateTime(self, dateTimeString):
+            # Daylight saving adjustment. Remove the '+01:00'
+            dateTimeString = dateTimeString.split('+')[0]
+            
             self.dateTimeObject = datetime.strptime(dateTimeString.replace('T', ' ').replace('+00:00', ''), '%Y-%m-%d %H:%M:%S')
             return self.dateTimeObject         
         
@@ -90,7 +109,8 @@ class Match:
             self.awayId = selections[1].get('id')
             self.awayTeam = selections[1].get('name')
             self.drawBetfairId = selections[2].get('id')
-            return self.homeBetfairId, self.homeTeam, self.awayBetfairId, self.awayTeam, self.drawBetfairId
+            self.goalTimesDict = {self.homeTeam:[], self.awayTeam:[]}
+            return self.goalTimesDict
         
         def teamsCountry(self):
             self.homeTeamCountry = countries[self.homeTeam]
@@ -164,6 +184,7 @@ class Match:
         def plusOneDataframes(self):
             self.pricesPlusOneToHome = pd.DataFrame(columns=['rowIndex', 'matchOddsTime', f'{self.homeTeam}_back', f'{self.homeTeam}_lay', f'{self.awayTeam}_back', f'{self.awayTeam}_lay', 'drawBackPrice', 'drawLayPrice'])
             self.pricesPlusOneToAway = pd.DataFrame(columns=['rowIndex', 'matchOddsTime', f'{self.awayTeam}_back', f'{self.awayTeam}_lay', f'{self.homeTeam}_back', f'{self.homeTeam}_lay', 'drawBackPrice', 'drawLayPrice'])
+            
             
         fixtureParse(self, fixture)
         dateAndTime(self, dateTimeString)

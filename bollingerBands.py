@@ -24,19 +24,19 @@ class BollingerBands:
         self.awayLowerStdDev = None
         
         ''' CHANGE THIS BACK TO FALSE'''
-        # if self.eventId.isInPlay == False: 
-        #     # return print('Match not yet inplay')
-        #     return None
+        if eventId.isInPlay == False: 
+            # return print('Match not yet inplay')
+            return None
 
         BollingerBands.loopThroughIntervals(self, eventId, intervals)
 
-    ''' Create Bollingger bands for each time interval in the intervals list'''
+    ''' Create Bollinger bands for each time interval in the intervals list'''
     def loopThroughIntervals(self, eventId, intervals):
         self.eventId = eventId
-       
+        
         j = 0
         for interval in intervals:
-            if (eventId.prices.iloc[-1:]['matchOddsTime'] - timedelta(seconds=interval)).values[0] - (eventId.prices.iloc[0:1]['matchOddsTime']).values[0] < interval:
+            if (eventId.prices.iloc[-1:]['matchOddsTime'] - timedelta(seconds=interval)).values[0] - (eventId.prices.iloc[0:1]['matchOddsTime']).values[0] < 0:
                 return    
             else:
                 start = (eventId.prices.iloc[-1:]['matchOddsTime'] - timedelta(seconds=interval)).values[0]

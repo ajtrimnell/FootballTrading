@@ -1,6 +1,6 @@
 # class GoalMarkets: 
     
-#     def __init__(self, eventId):
+#     def __init__(self, eventId, betAngelApiObject):
 #         self.eventId = eventId
 #         self.goalMarkets = betAngelApiObject.goalMarkets()
 #         self.goalMarketsStatusDict = {}

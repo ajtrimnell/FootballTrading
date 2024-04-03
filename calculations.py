@@ -1,9 +1,11 @@
 from datetime import timedelta
 import math
+from datetime import datetime
+import csv
 
 class Calculations:
     
-    def __init__(self, eventId, intervals, betAngelApiObject, matchObjectsList):
+    def __init__(self, eventId, intervals, betAngelApiObject, matchObjectsList, now):
         self.eventId = eventId
         self.homeXg = eventId.homeXg
         self.awayXg = eventId.awayXg
@@ -14,13 +16,21 @@ class Calculations:
         
         self.homeXgForPeriod = None
         self.awayXgForPeriod = None
+        
+        self.homeLayOpportunity = False
+        self.awayLayOpportunity = False
     
         def goalCalculations(self, eventId, intervals):        
             # Sometimes, when markets are deleted from Bet Angel Guardian, they still appear when the markets are pulled in via the api.
             # This will delete any events that are not in Guardian but appear in the match objects list
-            if len(eventId.prices['matchOddsTime']) == 0:
-                matchObjectsList.remove(eventId)
-                return ['Bet Angel Api thinks market is still loaded in', 0]
+            if len(eventId.prices['matchOddsTime']) == 0 and (eventId.dateTimeObject - now).total_seconds() < 0:
+                if eventId.matchStatus == 'NS':
+                    return print('Match not yet started')
+                else:
+                    matchObjectsList.remove(eventId)
+                    return ['Bet Angel Api thinks market is still loaded in', 0]
+            if eventId.matchStatus == 'NS':
+                return
             
             for interval in intervals:
                 self.interval = interval
@@ -32,6 +42,11 @@ class Calculations:
                     self.minOfMatch = math.ceil(((eventId.prices.iloc[-1:]['matchOddsTime'] - matchStartTime).values[0]).astype('float64')/1e9/60)
                     self.start = (eventId.prices.iloc[-1:]['matchOddsTime'] - timedelta(seconds=interval)).values[0]
                     self.end = (eventId.prices.iloc[-1:]['matchOddsTime']).values[0]
+                    
+                    self.homeBackPrice = eventId.prices.iloc[-1:]['homeBackPrice']
+                    self.homeLayPrice = eventId.prices.iloc[-1:]['homeLayPrice']
+                    self.awayLayPrice = eventId.prices.iloc[-1:]['awayLayPrice']
+                    self.awayBackPrice = eventId.prices.iloc[-1:]['awayBackPrice']
                     
                     self.mask = (eventId.prices['matchOddsTime'] >= self.start) & (eventId.prices['matchOddsTime'] < self.end)
                     self.bollingerMask = (eventId.bollingerBandDict[f'{str(self.interval)}']['matchTime'] >= self.start) & (eventId.bollingerBandDict[f'{str(self.interval)}']['matchTime'] < self.end)
@@ -69,29 +84,41 @@ class Calculations:
                     self.breakEvenPriceHomeLay = breakEvenCalcsHomeLay(self)
                     self.breakEvenPriceAwayLay = breakEvenCalcsAwayLay(self)
                     
-                    self.homeLayOpportunity = checkForOpportunity(self, self.homeBackAverage, self.priceHomeLay, self.homeUpperBand, 'homeBackPrice', 'homeMovingAverage', 'awayBackPrice')
-                    self.awayLayOpportunity = checkForOpportunity(self, self.awayBackAverage, self.priceAwayLay, self.awayUpperBand, 'awayBackPrice', 'awayMovingAverage', 'homeBackPrice')
-        
-                    # if self.homeLayOpportunity == False:
-                    #     bettingInfo(self)
-                   
-                         
+                    self.homeLayOpportunity = checkForOpportunity(self, self.homeBackAverage, self.priceHomeLay, self.homeUpperBand, \
+                                                                  'homeBackPrice', 'homeMovingAverage', 'awayBackPrice')
+                    self.awayLayOpportunity = checkForOpportunity(self, self.awayBackAverage, self.priceAwayLay, self.awayUpperBand, \
+                                                                  'awayBackPrice', 'awayMovingAverage', 'homeBackPrice')
+
+                                
         def checkForOpportunity(self, teamBackAverage, priceTeamLay, teamUpperBand, teamBackPrice, teamMovingAverage, otherTeamBackPrice):
+            a = placeBetCalcs(teamBackAverage, priceTeamLay)
+            b = otherTeamPriceGradient(otherTeamBackPrice)
+            c = teamVolatility(teamBackAverage, teamUpperBand)
+            d = priceSpikes(self, teamBackAverage, teamBackPrice, teamMovingAverage)
+            e = bettingInfo(self)
+            f = checkMatchScore()
+            g = marketLastSuspended()
+            
+
+            with open(f'test/{eventId.fixture}.csv', 'a', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow([now,self.interval,a,b,c,d,e,f,g])
+            
             if placeBetCalcs(teamBackAverage, priceTeamLay) == True:
                 if otherTeamPriceGradient(otherTeamBackPrice) == True:
                     if teamVolatility(teamBackAverage, teamUpperBand) == True:   
                         if priceSpikes(self, teamBackAverage, teamBackPrice, teamMovingAverage) == True:
                             if bettingInfo(self) == True:
-                                if checkMatchScore(self) == True:
-                                    print('It worked')      
-                                    return True
+                                if checkMatchScore() == True:
+                                    if marketLastSuspended() == True:
+                                        print('It worked')      
+                                        return True
             return False
 
         def xgForPeriod(self):
             # Calculate the xg at the start and end of the interval to get the expected goals during that period
             self.homeXgForPeriod = (xGRemaining(self.homeXg, self.minOfIntervalStart)) - xGRemaining(self.homeXg, self.minOfMatch)
             self.awayXgForPeriod = (xGRemaining(self.awayXg, self.minOfIntervalStart)) - xGRemaining(self.awayXg, self.minOfMatch)
-            print(self.homeXgForPeriod, self.awayXgForPeriod)
             return self.homeXgForPeriod, self.awayXgForPeriod
         
         def xGRemaining(xg, minOfMatch):
@@ -142,7 +169,7 @@ class Calculations:
             self.initialPrice = self.sampleMatchPrices.iloc[0:1]['homeBackPrice'] # Price at the start of the interval
             while self.breakEvenHomeLay[0] < 0:
                 self.breakEvenHomeLay += 0.01 / 60
-                self.breakEvenHomeLay = self.breakEvenHomeLay + (((self.HomeLay-1) - (self.initialPrice-1)) / self.HomeLay)
+                self.breakEvenHomeLay = self.breakEvenHomeLay + (((self.priceHomeLay-1) - (self.initialPrice-1)) / self.priceHomeLay)
             return self.breakEvenHomeLay
         
         def breakEvenCalcsAwayLay(self):
@@ -151,12 +178,11 @@ class Calculations:
             self.initialPrice = self.sampleMatchPrices.iloc[0:1]['awayBackPrice'] # Price at the start of the interval
             while self.breakEvenAwayLay[0] < 0:
                 self.priceAwayLay += 0.01 / 60
-                self.breakEvenAwayLay = self.breakEvenAwayLay + (((self.AwayLay-1) - (self.initialPrice-1)) / self.AwayLay)
+                self.breakEvenAwayLay = self.breakEvenAwayLay + (((self.priceAwayLay-1) - (self.initialPrice-1)) / self.priceAwayLay)
             return self.priceAwayLay
                 
         def placeBetCalcs(teamBackAverage, priceTeamLay):
             if teamBackAverage - priceTeamLay.values[0] < 0:
-                # return True
                 return False
             if teamBackAverage - priceTeamLay.values[0] >= 0:
                 return True
@@ -167,13 +193,11 @@ class Calculations:
                             (teamGradientRange.iloc[-1:]['matchOddsTime'].values[0] - teamGradientRange.iloc[0:1]['matchOddsTime'].values[0]).astype('float64')/1e9/60
             if teamGradient < 0:
                 return True
-            # return True
             return False
 
         def teamVolatility(teamBackAverage, teamUpperBand):
             if teamBackAverage < teamUpperBand:
                 return True
-            # return True
             return False
 
         def priceSpikes(self, teamBackAverage, teamBackPrice, teamMovingAverage):
@@ -193,21 +217,72 @@ class Calculations:
             self.storedValues = betAngelApiObject.storedValues(eventId.id)
             currentMarketLiability = self.storedValues['result']['markets'][0]['sharedValues'][0]['v']
             greeningProfitOrLoss = self.storedValues['result']['markets'][0]['selections'][0]['sharedValues'][0]['v']
-            x = greeningProfitOrLoss / currentMarketLiability
             
-            if x > 0.9 or x < 1.1: 
+            try:
+                x = greeningProfitOrLoss / currentMarketLiability
+                
+                if x > 0.9 or x < 1.1: 
+                    return True
+                else:
+                    return False
+            except ZeroDivisionError:
                 return True
-            else:
-                return False
                         
-        def checkMatchScore(self):
+        def checkMatchScore():
             if eventId.homeGoals == 0 and eventId.awayGoals == 0:
                 return True
             else:
                 return False
             
+        def marketLastSuspended():
+            file = open(f'C:/dev/Python/betfairData/marketStatusCsvs/status_{eventId.id}_{eventId.homeTeam} v {eventId.awayTeam} - match Odds.csv')
+            content = file.read().split('\n')
+            content.reverse()
+            for row in range(1, len(content)-1):
+                content[row] = content[row].split(',')
+                if content[row][-2] == '1':
+                    now = datetime.now()
+                    dateTimeObject = datetime.strptime(content[row][0],'%d/%m/%Y %H:%M:%S')
+                    if (now - dateTimeObject).total_seconds() > 300:
+                        return True
+                    else:
+                        return False
+
         goalCalculations(self, eventId, intervals)
         
-
+    def checkOpportunityValue(self):
+        return [self.homeLayOpportunity, self.awayLayOpportunity]
+    
+    def calculateStake(self, team, fixture, dateTimeObject, calcInstance):
+        if team == 'home':
+            layStake = 4 / (self.homeBackPrice.values[0] - 1)
+        elif team == 'away':
+            layStake = 4 / (self.homeAwayPrice.values[0] - 1)
+        else:
+            return print('Stake calculation error')
+        # Back stake is one fifth of the total liability
+        backStake = 1
         
+        with open('opportunities.csv', 'a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([fixture, dateTimeObject, calcInstance])
+        
+        return [layStake, backStake]
+        
+    
+
+
+
+
+
+class PositionExit:
+    
+    def __init__(self, eventId, intervals, betAngelApiObject, matchObjectsList, now):
+        
+        self.matchScoreList = eventId.matchScoreList
+        
+        
+    # Check for home goal
+    # Check for away goal
+    
         
