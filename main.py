@@ -1,9 +1,11 @@
 from threading import Thread, Event
+# import concurrent.futures
+
 from queue import Queue
 
-from time import sleep
+from time import sleep, time
+
 from datetime import datetime
-import csv
 
 from callRapidApi import CallRapidApi
 from callBetfair import CallBetfair
@@ -12,6 +14,7 @@ from bollingerBands import BollingerBands
 from calculations import Calculations
 from matchPrices import MatchPrices, MatchOddsPlusOne
 from betting import Betting
+from rapidApi import updateRapidApiInfo
 
 from workerFunctions import *
 
@@ -19,8 +22,7 @@ from teamsCountries import *
 
 
 
-superLst = []
-queue = Queue()
+
 
 def todaysDate():
     now = datetime.now().date()
@@ -74,15 +76,18 @@ def workerFunction0():
     for league in leagues:   
         result = CallRapidApi(today, league, '2023').todaysFixtures()['response']
         for i in range(0, len(result)):
+            
             country = result[i]['league']['country']
             teamsInCountry = teams[f'{country}']
             rapidApiHomeTeam = teamsInCountry[result[i]['teams']['home']['name']]
             rapidApiAwayTeam = teamsInCountry[result[i]['teams']['away']['name']]
 
             for match in matchObjectsList:
-                if match.homeTeam == rapidApiHomeTeam and match.awayTeam == rapidApiAwayTeam:
+                if match.homeTeam.lower() == rapidApiHomeTeam.lower() and match.awayTeam.lower() == rapidApiAwayTeam.lower():
                     match.rapidApiId = result[i]['fixture']['id']
                     match.matchStatus = result[i]['fixture']['status']['short']
+                    match.homeTeamRapidApi = result[i]['teams']['home']['name']
+                    match.awayTeamRapidApi = result[i]['teams']['away']['name']
                     break
     
     
@@ -101,45 +106,23 @@ def betfairInPlayStatus(betAngelApiObject, matchObjectsList):
 def workerFunction1():
 
     now = datetime.now().replace(microsecond=0)
+    ''' DO NOT DELETE THIS - uncomment for production '''
     betfairInPlayStatus(betAngelApiObject, matchObjectsList)
     
-    superLst = queue.get()
-    
-    for result in superLst:
-        for i in range(0, len(result)):
-            rapidApiEventId = result[i]['fixture']['id']
-            for match in matchObjectsList:
-                if match.rapidApiId == rapidApiEventId:
-                    match.matchScoreList.append(((datetime.now().replace(microsecond=0), result[i]['goals']['home'], result[i]['goals']['away'])))
-                    match.matchStatus = result[i]['fixture']['status']['short']
-                    
-                    homeGoals = result[i]['goals']['home']
-                    awayGoals = result[i]['goals']['away']
-                    goalCount = int(homeGoals) + int(awayGoals)
-                    
-                    match.homeGoals = homeGoals
-                    match.awayGoals = awayGoals
-                    match.goalCount = goalCount
-                    
-                    if len(match.homeGoalsTimes) + len(match.awayGoalsTimes) != goalCount:
-                        getGoalTimes(match, result[i]['events'])
-                    break
-    
+  
     MatchPrices(now, betAngelApiObject, matchObjectsList)
     MatchOddsPlusOne(now, betAngelApiObject, matchObjectsList)
     for match in matchObjectsList:
+        
         BollingerBands(match, intervals)
         Calculations(match, intervals, betAngelApiObject, matchObjectsList, now)
-        
-        
+    
         # if calcInstance.checkOpportunityValue()[0] == True and calcInstance.checkOpportunityValue()[0] == False:
         #     stakesValues = Calculations.calculateStake('home', match.fixture, match.dateTimeObject, calcInstance)    
-            
-            
+                   
         # elif calcInstance.checkOpportunityValue()[0] == False and calcInstance.checkOpportunityValue()[0] == True:
         #     stakesValues = Calculations.calculateStake('away', match.fixture, match.dateTimeObject)
-            
-            
+             
         # else:
         #     continue      
                 
@@ -148,74 +131,15 @@ def workerFunction1():
 ''' Update xg attributes when a market has less than 120 seconds until start time'''
 def workerFunction2():
     for match in matchObjectsList:
-        if (match.dateTimeObject - datetime.now()).total_seconds() < 120: # Change this back to 120
+        if (match.dateTimeObject - datetime.now()).total_seconds() < 120000000: # Change this back to 120
             match.getXg()
 
 
-def getGoalTimes(match, result):
-    for event in result:
-        if event['type'] == "Goal"  and event['detail'] != "Missed Penalty":
-            if match.homeTeam == event['team']['name']:
-                goalTimesDict = match.goalTimesDict.get(f'{match.homeTeam}')
-                minOfGoal = event['time']['elapsed']
-                if minOfGoal in goalTimesDict:
-                    continue
-                else:
-                    match.goalTimesDict.get(f'{match.homeTeam}').append(minOfGoal)
-                    continue
-                
-            if match.awayTeam == event['team']['name']:
-                goalTimesDict = match.goalTimesDict.get(f'{match.awayTeam}')
-                minOfGoal = event['time']['elapsed']
-                if minOfGoal in goalTimesDict:
-                    continue
-                else:
-                    match.goalTimesDict.get(f'{match.awayTeam}').append(minOfGoal)
-                    continue
-    return
-                
-    
-
-
-''' Scores from Rapid Api'''
+# ''' Scores from Rapid Api'''
 def workerFunction3():
     
-    # workerFunctionX(CallRapidApi, today, matchObjectsList, betAngelApiObject, leagues)
-    # def workerFunctionX(CallRapidApi, today, matchObjectsList, betAngelApiObject, leagues):
+    updateRapidApiInfo(leagues, today, CallRapidApi, matchObjectsList)
     
-    # betfairInPlayStatus(betAngelApiObject, matchObjectsList)
-    # Call Rapid Api to get the current goals for each team and update the match objects.
-    # Rapid Api event id is used as the identifier to find the correct match object.
-    superLst = []
-    for league in leagues:
-        resultTemp = CallRapidApi(today, league, '2023').inplayMatches()['response']
-        superLst.append(resultTemp)
-        
-    queue.put(superLst)
-    
-
-    # for result in superLst:
-    #     # print(type(lst), type(result), len(lst), len(result))
-    #     for i in range(0, len(result)):
-    #         rapidApiEventId = result[i]['fixture']['id']
-    #         for match in matchObjectsList:
-    #             if match.rapidApiId == rapidApiEventId:
-    #                 match.matchScoreList.append(((datetime.now().replace(microsecond=0), result[i]['goals']['home'], result[i]['goals']['away'])))
-    #                 match.matchStatus = result[i]['fixture']['status']['short']
-                    
-    #                 homeGoals = result[i]['goals']['home']
-    #                 awayGoals = result[i]['goals']['away']
-    #                 goalCount = int(homeGoals) + int(awayGoals)
-                    
-    #                 match.homeGoals = homeGoals
-    #                 match.awayGoals = awayGoals
-    #                 match.goalCount = goalCount
-                    
-    #                 if len(match.homeGoalsTimes) + len(match.awayGoalsTimes) != goalCount:
-    #                     getGoalTimes(match, result[i]['events'])
-    #                 break
-    return 0
-
 
 ''' Print score, minute and prices to console '''
 def workerFunction4():    
@@ -223,7 +147,7 @@ def workerFunction4():
     print(matchObjectsList)
     for match in matchObjectsList:
         try:
-            print(match.fixture, match.matchStatus, match.homeGoals, match.awayGoals, match.goalTimesDict, match.prices.iloc[-1]['homeBackPrice'], match.prices.iloc[-1]['awayBackPrice'], match.prices.iloc[-1]['drawBackPrice'])               
+            print(match.fixture, match.matchStatus, match.homeGoals, match.awayGoals, match.homeGoalsList, match.awayGoalsList, match.prices.iloc[-1]['homeBackPrice'], match.prices.iloc[-1]['awayBackPrice'], match.prices.iloc[-1]['drawBackPrice'])               
         except IndexError:
             print(f'Match not started {match.fixture}')
             continue
@@ -233,37 +157,34 @@ today = todaysDate()
               
 if __name__ == '__main__':
     
-    intervals = [10,300,360,420,480,540,600,660,720,780,840,960,1020,1080,1140,1200]   
+    intervals = [10,300,360,420,480,540,600,660,720,780,840,960,1020,1080,1140,1200]
+   
     betAngelApiObject = createBetAngelApiObject()
     matchObjectsList = matchObjects(betAngelApiObject)
     
-    # worker0 = PeriodicThread(workerFunction0, interval=1)
-    # worker0.start()
     workerFunction0()
+    workerFunction3()
 
     worker1 = PeriodicThread(workerFunction1, interval=0.25)
     worker1.start()
     
-    # worker2 = PeriodicThread(workerFunction2, interval=60)
-    # worker2.start()
+    worker2 = PeriodicThread(workerFunction2, interval=60)
+    worker2.start()
     
-          
-    worker3 = PeriodicThread(workerFunction3, interval=15)
+    worker3 = PeriodicThread(workerFunction3, interval=1)
     worker3.start()
-   
     
     worker4 = PeriodicThread(workerFunction4, interval=15)
     worker4.start()
-    
-       
+
+
     try:
        # this is to keep the main thread alive
        while True:
            sleep(1)
     except (KeyboardInterrupt, SystemExit):
         
-        # worker0.terminate()
         worker1.terminate()
-        # worker2.terminate()
+        worker2.terminate()
         worker3.terminate()
         worker4.terminate()

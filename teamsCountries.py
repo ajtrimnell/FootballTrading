@@ -227,8 +227,7 @@ countries = {
     "Stuttgart":"Germany",
     "Bochum":"Germany",
     "Wolfsburg":"Germany",
-    "Bremen":"Germany",
-
+    "Werder Bremen":"Germany",
 
     "Clermont":"France",
     "Le Havre":"France",
@@ -268,12 +267,12 @@ countries = {
 
     "Az Alkmaar":"Netherlands",
     "Ajax":"Netherlands",
-    "Almere City FC":"Netherlands",
+    "Almere City":"Netherlands",
     "Excelsior":"Netherlands",
     "FC Volendam":"Netherlands",
     "Feyenoord":"Netherlands",
     "Fortuna Sittard":"Netherlands",
-    "GO Ahead Eagles":"Netherlands",
+    "Go Ahead Eagles":"Netherlands",
     "Heerenveen":"Netherlands",
     "Heracles":"Netherlands",
     "NEC Nijmegen":"Netherlands",
@@ -283,7 +282,7 @@ countries = {
     "FC Twente":"Netherlands",
     "FC Utrecht":"Netherlands",
     "Vitesse":"Netherlands",
-    "Waalwijk":"Netherlands",
+    "RKC Waalwijk":"Netherlands",
 
     "Ajaccio":"France",
     "Amiens":"France",
@@ -306,34 +305,33 @@ countries = {
     "Saint Etienne":"France",
     "Valenciennes":"France",
 
-    "Eintracht Braunschweig":"Germany",
-    "FC Kaiserslautern":"Germany",
+    "Braunschweig":"Germany",
+    "Kaiserslautern":"Germany",
     "FC Magdeburg":"Germany",
-    "FC Nurnberg":"Germany",
-    "FC Schalke 04":"Germany",
-    "FC St. Pauli":"Germany",
+    "Nurnberg":"Germany",
+    "Schalke 04":"Germany",
+    "St Pauli":"Germany",
     "Fortuna Dusseldorf":"Germany",
     "Hamburger SV":"Germany",
-    "Hannover 96":"Germany",
+    "Hannover":"Germany",
     "Hansa Rostock":"Germany",
     "Hertha Berlin":"Germany",
     "Holstein Kiel":"Germany",
-    "Karlsruher SC":"Germany",
-    "SC Paderborn 07":"Germany",
+    "Karlsruhe":"Germany",
+    "Paderborn":"Germany",
     "SV Elversberg":"Germany",
-    "SV Wehen":"Germany",
-    "SpVgg Greuther Furth":"Germany",
+    "Wehen Wiesbaden":"Germany",
+    "Greuther Furth":"Germany",
     "VfL Osnabruck":"Germany",
 
     "Arouca":"Portugal",
     "Benfica":"Portugal",
     "Boavista":"Portugal",
-    "Braga":"Portugal",
     "Casa Pia":"Portugal",
     "Chaves":"Portugal",
-    "Estoril":"Portugal",
-    "Estrela":"Portugal",
-    "FC Porto":"Portugal",
+    "Estoril Praia":"Portugal",
+    "Club Football Estrela":"Portugal",
+    "Porto":"Portugal",
     "Famalicao":"Portugal",
     "Farense":"Portugal",
     "GIL Vicente":"Portugal",
@@ -341,7 +339,8 @@ countries = {
     "Moreirense":"Portugal",
     "Portimonense":"Portugal",
     "Rio Ave":"Portugal",
-    "Sporting CP":"Portugal",
+    "Braga":"Portugal",
+    "Sporting Lisbon":"Portugal",
     "Vizela":"Portugal",
 
     "Adelaide United":"Australia",
@@ -357,11 +356,11 @@ countries = {
     "Western Sydney Wanderers":"Australia",
     "Western United":"Australia",
 
-    "AIK":"Sweden",
+    "AIK stockholm":"Sweden",
     "BK Hacken":"Sweden",
-    "Degerfors IF":"Sweden",
-    "Djurgardens":"Sweden",
-    "Halmstads":"Sweden",
+    "Djurgardens IF":"Sweden",
+    "Gais":"Sweden",
+    "Halmstad":"Sweden",
     "Hammarby FF":"Sweden",
     "IF Brommapojkarna":"Sweden",
     "IF elfsborg":"Sweden",
@@ -371,10 +370,8 @@ countries = {
     "Malmo FF":"Sweden",
     "Mjallby AIF":"Sweden",
     "Sirius":"Sweden",
-    "Utsikten":"Sweden",
-    "Varbergs BoIS FC":"Sweden",
+    "Vasteras SK FK":"Sweden",
     "kalmar FF":"Sweden",
-    "Vasteras SK":"Sweden",
 
     "BSC Young Boys":"Switzerland",
     "FC Basel 1893":"Switzerland",
@@ -392,7 +389,7 @@ countries = {
     "Aarhus":"Denmark",
     "Brondby":"Denmark",
     "FC Copenhagen":"Denmark",
-    "Midtjylland":"Denmark",
+    "FC Midtjylland":"Denmark",
     "FC Nordsjaelland":"Denmark",
     "Hvidovre":"Denmark",
     "Lyngby":"Denmark",
@@ -528,6 +525,7 @@ countries = {
     "Ukraine":"World"
 }
 
+''' Rapid Api on left and Betfair on right'''
 teams = {
     "England": {
         "Arsenal":"Arsenal",
@@ -646,8 +644,8 @@ teams = {
     },
     "Belgium": {
         "AS Eupen":"Eupen",
-        "Anderlecht":"Anderlecht",# Needs checking
-        "Antwerp":"Antwerp",# Needs checking
+        "Anderlecht":"Anderlecht",
+        "Antwerp":"Antwerp",
         "Cercle Brugge":"Cercle Brugge",
         "Charleroi":"Charleroi",
         "Club Brugge KV":"Club Brugge",
@@ -656,11 +654,11 @@ teams = {
         "KV Mechelen":"Yellow-Red Mechelen",
         "KVC Westerlo":"Westerlo",
         "Kortrijk":"Kortrijk",
-        "OH Leuven":"OH Leuven",# Needs checking
+        "OH Leuven":"Oud-Heverlee Leuven",
         "RWDM":"RWDM",# Needs checking
         "St. Truiden":"Sint Truiden",
-        "Standard Liege":"Standard Liege",# Needs checking
-        "Union St. Gilloise":"Union St Gilloise"
+        "Standard Liege":"Standard",# Needs checking?
+        "Union St. Gilloise":"Union St-Gilloise"
     },
     "Netherlands": {
         "AZ Alkmaar":"AZ Alkmaar",
@@ -745,41 +743,41 @@ teams = {
         "VfB Stuttgart":"Stuttgart",
         "Vfl Bochum":"Bochum",
         "VfL Wolfsburg":"Wolfsburg",
-        "Werder Bremen":"Bremen",
+        "Werder Bremen":"Werder Bremen",
         
-        "Eintracht Braunschweig":"Eintracht Braunschweig",# Needs checking
+        "Eintracht Braunschweig":"Braunschweig",
         "FC Kaiserslautern":"Kaiserslautern",
         "FC Magdeburg":"FC Magdeburg",
-        "FC Nurnberg":"FC Nurnberg",# Needs checking
-        "FC Schalke 04":"FC Schalke 04",# Needs checking
-        "FC St. Pauli":"FC St. Pauli",# Needs checking
-        "Fortuna Dusseldorf":"Fortuna Dusseldorf",# Needs checking
+        "FC Nurnberg":"Nurnberg",
+        "FC Schalke 04":"Schalke 04",
+        "FC St. Pauli":"St Pauli",
+        "Fortuna Dusseldorf":"Fortuna Dusseldorf",
         "Hamburger SV":"Hamburger SV",
-        "Hannover 96":"Hannover 96",# Needs checking
+        "Hannover 96":"Hannover",
         "Hansa Rostock":"Hansa Rostock",
-        "Hertha Berlin":"Hertha Berlin",# Needs checking
-        "Holstein Kiel":"Holstein Kiel",# Needs checking
-        "Karlsruher SC":"Karlsruher SC",# Needs checking
-        "SC Paderborn 07":"SC Paderborn 07",# Needs checking
+        "Hertha Berlin":"Hertha Berlin",
+        "Holstein Kiel":"Holstein Kiel",
+        "Karlsruher SC":"Karlsruhe",
+        "SC Paderborn 07":"Paderborn",
         "SV Elversberg":"Elversberg",
         "SV Wehen":"Wehen Wiesbaden",
         "SpVgg Greuther Furth":"Greuther Furth",
         "VfL Osnabruck":"VFL Osnabruck"
     },
     "Portugal": {
-        "Arouca":"Arouca",# Needs checking
+        "Arouca":"Arouca",
         "Benfica":"Benfica",
         "Boavista":"Boavista",
-        "Casa Pia":"Casa Pia",# Needs checking
-        "Chaves":"Chaves",# Needs checking
-        "Estoril":"Estoril",# Needs checking
-        "Estrela":"Estrela",# Needs checking
+        "Casa Pia":"Casa Pia",
+        "Chaves":"Chaves",
+        "Estoril":"Estoril Praia",
+        "Estrela":"Club Football Estrela",
         "FC Porto":"Porto",
         "Famalicao":"Famalicao",
         "Farense":"Farense",
         "GIL Vicente":"GIL Vicente",
         "Guimaraes":"Guimaraes",
-        "Moreirense":"Moreirense",# Needs checking
+        "Moreirense":"Moreirense",
         "Portimonense":"Portimonense",
         "Rio Ave":"Rio Ave",
         "SC Braga":"Braga",
@@ -807,24 +805,24 @@ teams = {
         "Toulouse":"Toulouse",
         
         "Ajaccio":"AC Ajaccio",
-        "Amiens":"Amiens",# Needs checking
-        "Angers":"Angers",# Needs checking
-        "Annecy":"Annecy",# Needs checking
+        "Amiens":"Amiens",
+        "Angers":"Angers",
+        "Annecy":"Annecy",
         "Auxerre":"Auxerre",
-        "Bastia":"Bastia",# Needs checking
-        "Bordeaux":"Bordeaux",# Needs checking
-        "Caen":"Caen",# Needs checking
-        "Concarneau":"Concarneau",# Needs checking
-        "Dunkerque":"Dunkerque",# Needs checking
-        "Estac Troyes":"Estac Troyes",# Needs checking
-        "Grenoble":"Grenoble",# Needs checking
-        "Guingamp":"Guingamp",# Needs checking
-        "Laval":"Laval",# Needs checking
-        "PAU":"PAU",# Needs checking
-        "Paris FC":"Paris FC",# Needs checking
-        "Quevilly":"Quevilly",# Needs checking
-        "Rodez":"Rodez",# Needs checking
-        "Saint Etienne":"Saint Etienne",# Needs checking
+        "Bastia":"Bastia",
+        "Bordeaux":"Bordeaux",
+        "Caen":"Caen",
+        "Concarneau":"Concarneau",
+        "Dunkerque":"Dunkerque",
+        "Estac Troyes":"ESTAC Troyes",
+        "Grenoble":"Grenoble",
+        "Guingamp":"Guingamp",
+        "Laval":"Laval",
+        "PAU":"Pau",
+        "Paris FC":"Paris FC",
+        "Quevilly":"Quevilly Rouen",
+        "Rodez":"Rodez",
+        "Saint Etienne":"St Etienne",
         "Valenciennes":"Valenciennes"
     },
     "Australia": {
@@ -843,21 +841,21 @@ teams = {
     },
     "Sweden": {
         "AIK stockholm":"AIK",
-        "BK Hacken":"BK Hacken",# Needs checking
+        "BK Hacken":"Hacken",
         "Djurgardens IF":"Djurgardens",
-        "Gais":"Gais",# Needs checking
+        "Gais":"GAis",
         "Halmstad":"Halmstads",
-        "Hammarby FF":"Hammarby FF",# Needs checking
-        "IF Brommapojkarna":"IF Brommapojkarna",# Needs checking
+        "Hammarby FF":"Hammarby",
+        "IF Brommapojkarna":"Brommapojkarna",
         "IF elfsborg":"Elfsborg",
         "IFK Goteborg":"IFK Goteborg",
         "IFK Norrkoping":"Norrkoping",
         "IFK Varnamo":"Varnamo",
-        "Malmo FF":"Malmo FF",# Needs checking
+        "Malmo FF":"Malmo FF",
         "Mjallby AIF":"Mjallby",
         "Sirius":"Sirius",
         "Vasteras SK FK":"Vasteras SK",
-        "kalmar FF":"kalmar FF",# Needs checking
+        "kalmar FF":"Kalmar FF",
     },
     "Switzerland": {
         "BSC Young Boys":"Young Boys",
@@ -877,15 +875,15 @@ teams = {
         "Aarhus":"AGF",
         "Brondby":"Brondby",
         "FC Copenhagen":"FC Copenhagen",
-        "FC Midtjylland":" FC Midtjylland",
+        "FC Midtjylland":"Midtjylland",
         "FC Nordsjaelland":"FC Nordsjaelland",
-        "Hvidovre":"Hvidovre",# Needs checking
-        "Lyngby":"Lyngby",# Needs checking
-        "Odense":"Odense",# Needs checking
-        "Randers FC":"Randers FC",# Needs checking
+        "Hvidovre":"Hvidovre",
+        "Lyngby":"Lyngby",
+        "Odense":"Odense",
+        "Randers FC":"Randers",
         "Silkeborg":"Silkeborg",
-        "Vejle":"Vejle",# Needs checking
-        "Viborg":"Viborg"# Needs checking
+        "Vejle":"Vejle",
+        "Viborg":"Viborg"
     },
     "Saudi-Arabia": {
         "Abha":"Abha",

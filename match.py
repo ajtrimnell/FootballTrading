@@ -23,6 +23,8 @@ class Match:
         
         self.homeTeam = None # Name of the home team
         self.awayTeam = None # Name of the away team
+        self.homeTeamRapidApi = None
+        self.awayTeamRapidApi = None
         self.homeTeamCountry = None # The country where the home team is from
         self.awayTeamCountry = None # The country where the away team is from
         
@@ -50,12 +52,12 @@ class Match:
         self.matchMinute = 0
         self.timeElapsedOk = False
         self.goalCount = 0
-        self.matchScoreList = []
+        # self.matchScoreList = []
         self.homeGoals = None
         self.awayGoals = None
         
-        self.homeGoalsTimes = []
-        self.awayGoalsTimes = []
+        self.homeGoalsList = []
+        self.awayGoalsList = []
          
         self.homeXg = None
         self.awayXg = None
@@ -109,8 +111,8 @@ class Match:
             self.awayId = selections[1].get('id')
             self.awayTeam = selections[1].get('name')
             self.drawBetfairId = selections[2].get('id')
-            self.goalTimesDict = {self.homeTeam:[], self.awayTeam:[]}
-            return self.goalTimesDict
+            # self.goalTimesDict = {self.homeTeam:[], self.awayTeam:[]}
+            # return self.goalTimesDict
         
         def teamsCountry(self):
             self.homeTeamCountry = countries[self.homeTeam]

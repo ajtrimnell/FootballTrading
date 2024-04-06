@@ -1,4 +1,5 @@
 import pandas as pd
+import json
 
 class MatchPrices:
 
@@ -9,8 +10,9 @@ class MatchPrices:
         ''' Check if the market has finished and is now closed'''
         def currentMatchOdds(self):
             for odds in self.latestOdds['result']['markets']:
-                for match in matchObjectsList:
+                for match in matchObjectsList:               
                     if match.id == odds.get('id') and match.isInPlay == True: 
+                        MatchPrices.updateMatchObject(match)
                         MatchPrices.pricesMatchOdds(self, match, odds)
                         MatchPrices.dataframeToCsv(self, match) 
                         break
@@ -36,6 +38,25 @@ class MatchPrices:
   
     def dataframeToCsv(self, match):
         self.dfToAppend.to_csv(f'./tempFiles/{match.fixture}_prices.csv', mode='a', header=False, index=False)
+        
+    ''' Update Match object with Rapid Api data - scores, status, goals times '''
+    def updateMatchObject(match):
+        
+        try:
+            with open(f'C:/dev/Python/betfairData/rapidApiDataCsvs/{match.fixture}.json', 'r') as file:
+                content = json.load(file) 
+
+                match.matchStatus = content['matchStatus']
+                match.homeGoals = content['homeGoals']
+                match.awayGoals = content['awayGoals']
+                match.homeGoalsList = content['homeGoalsList']
+                match.awayGoalsList = content['awayGoalsList']
+                match.goalCount = content['goalCount']
+            
+                file.close()
+
+        except FileNotFoundError:
+            return
 
 
 class MatchOddsPlusOne:
@@ -116,8 +137,6 @@ class MatchOddsPlusOne:
     # Assign the market ids of the plus one markets to the 'plusOneToHomeId' and 'plusOneToAwayId' properties in the match object.
     def assignMarketIds(market, match):
         name = MatchOddsPlusOne.splitMarketName(market).lower()
-        print(name, match.homeTeam, match.awayTeam)
-        
         if name == match.homeTeam.lower():
             match.plusOneToHomeId = market['id']
             return
