@@ -1,10 +1,7 @@
 from threading import Thread, Event
-# import concurrent.futures
 
-from queue import Queue
-
-from time import sleep, time
-
+import json
+from time import sleep
 from datetime import datetime
 
 from callRapidApi import CallRapidApi
@@ -14,12 +11,11 @@ from bollingerBands import BollingerBands
 from calculations import Calculations
 from matchPrices import MatchPrices, MatchOddsPlusOne
 from betting import Betting
-from rapidApi import updateRapidApiInfo
+from rapidApi import *
 
 from workerFunctions import *
 
 from teamsCountries import *
-
 
 
 
@@ -48,10 +44,30 @@ def matchObjects(betAngelApiObject):
             print('Market is closed')
             continue
         else:
-            print(match.get('inPlay'))
             matchObjectsList.append(Match(match.get('id'), match.get('eventId'), match.get('name'), match.get('startTime'), match.get('selections'), match.get('inPlay')))
+            createEmptyJsonFile(match.get('name'))
     return matchObjectsList
 
+# This is for testing but I may leave it in
+def createEmptyJsonFile(fixture):
+    
+    fixture = fixture.split(' - ')[0]
+    dictObject = {'fixture':fixture,
+                  'dateTime':"",
+                  'matchStatus':"",
+                  'homeGoals':"",
+                  'awayGoals':"",
+                  'goalCount':"",
+                  'homeGoalsList':"",
+                  'awayGoalsList':""
+                  }
+                        
+    jsonObject = json.dumps(dictObject)
+    
+    with open(f'C:/dev/Python/betfairData/rapidApiDataCsvs/{fixture}.json', 'w') as outfile:
+        outfile.write(jsonObject)
+    
+    outfile.close()
 
 class PeriodicThread(Thread):
 
@@ -91,7 +107,6 @@ def workerFunction0():
                     break
     
     
-    
 def betfairInPlayStatus(betAngelApiObject, matchObjectsList):
     apiCallResult = betAngelApiObject.markets()
     for result in apiCallResult:
@@ -109,14 +124,21 @@ def workerFunction1():
     ''' DO NOT DELETE THIS - uncomment for production '''
     betfairInPlayStatus(betAngelApiObject, matchObjectsList)
     
-  
     MatchPrices(now, betAngelApiObject, matchObjectsList)
     MatchOddsPlusOne(now, betAngelApiObject, matchObjectsList)
-    for match in matchObjectsList:
-        
-        BollingerBands(match, intervals)
-        Calculations(match, intervals, betAngelApiObject, matchObjectsList, now)
     
+    
+
+def workerFunction1a():
+    
+    now = datetime.now().replace(microsecond=0)
+    for match in matchObjectsList:
+        try:
+            BollingerBands(match, intervals)
+            Calculations(match, intervals, betAngelApiObject, matchObjectsList, now)
+        except IndexError:
+            continue 
+        
         # if calcInstance.checkOpportunityValue()[0] == True and calcInstance.checkOpportunityValue()[0] == False:
         #     stakesValues = Calculations.calculateStake('home', match.fixture, match.dateTimeObject, calcInstance)    
                    
@@ -134,7 +156,6 @@ def workerFunction2():
         if (match.dateTimeObject - datetime.now()).total_seconds() < 120000000: # Change this back to 120
             match.getXg()
 
-
 # ''' Scores from Rapid Api'''
 def workerFunction3():
     
@@ -144,12 +165,10 @@ def workerFunction3():
 ''' Print score, minute and prices to console '''
 def workerFunction4():    
     print('-----------------')
-    print(matchObjectsList)
     for match in matchObjectsList:
         try:
-            print(match.fixture, match.matchStatus, match.homeGoals, match.awayGoals, match.homeGoalsList, match.awayGoalsList, match.prices.iloc[-1]['homeBackPrice'], match.prices.iloc[-1]['awayBackPrice'], match.prices.iloc[-1]['drawBackPrice'])               
+            print(match.fixture, match.dateTimeObject, match.matchStatus, match.homeGoals, match.awayGoals, match.homeGoalsList, match.awayGoalsList, match.prices.iloc[-1]['homeBackPrice'], match.prices.iloc[-1]['awayBackPrice'], match.prices.iloc[-1]['drawBackPrice'])               
         except IndexError:
-            print(f'Match not started {match.fixture}')
             continue
         
 leagues = [39,40,41,61,78,135,140,141,144,88,141,136,62,79,94,188,113,207,119,307,253,71,128] # Don't forget Champions League and internationals etc
@@ -168,6 +187,9 @@ if __name__ == '__main__':
     worker1 = PeriodicThread(workerFunction1, interval=0.25)
     worker1.start()
     
+    worker1a = PeriodicThread(workerFunction1a, interval=0.25)
+    worker1a.start()
+    
     worker2 = PeriodicThread(workerFunction2, interval=60)
     worker2.start()
     
@@ -185,6 +207,7 @@ if __name__ == '__main__':
     except (KeyboardInterrupt, SystemExit):
         
         worker1.terminate()
+        worker1a.terminate()
         worker2.terminate()
         worker3.terminate()
         worker4.terminate()

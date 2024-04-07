@@ -1,20 +1,56 @@
 import pandas as pd
 import json
+import time
+
 
 class MatchPrices:
 
     def __init__(self, now, betAngelApiObject, matchObjectsList):
         self.latestOdds = betAngelApiObject.marketPrices()
         self.now = now
-
+        
+        # print(self.latestOdds, '\n')
         ''' Check if the market has finished and is now closed'''
         def currentMatchOdds(self):
             for odds in self.latestOdds['result']['markets']:
-                for match in matchObjectsList:               
-                    if match.id == odds.get('id') and match.isInPlay == True: 
-                        MatchPrices.updateMatchObject(match)
-                        MatchPrices.pricesMatchOdds(self, match, odds)
-                        MatchPrices.dataframeToCsv(self, match) 
+                for match in matchObjectsList:      
+                    
+                    # if match.fixture == 'Aston Villa_v_Brentford':
+                    #     print('Aston Villa_v_Brentford', match.isInPlay)
+                    # print(match.fixture, match.id, odds.get('id'), odds.get('name'), match.isInPlay)
+                    if match.id == odds.get('id') and match.isInPlay == False:
+                        continue      
+                
+                    if match.id == odds.get('id') and match.isInPlay == True:  
+                        
+                        with open(f'C:/dev/Python/betfairData/rapidApiDataCsvs/{match.homeTeam} v {match.awayTeam}.json', 'r') as file:
+                            try:      
+                                content = json.load(file) 
+
+                                match.matchStatus = content['matchStatus']
+                                match.homeGoals = content['homeGoals']
+                                match.awayGoals = content['awayGoals']
+                                match.homeGoalsList = content['homeGoalsList']
+                                match.awayGoalsList = content['awayGoalsList']
+                                match.goalCount = content['goalCount']
+                            
+                                file.close()
+
+                            except (json.JSONDecodeError):
+                                print(match.fixture)
+                                break
+                        
+                        
+                        
+                        # MatchPrices.updateMatchObject(match)
+                        # 'try' statement - When a match goes inplay, the self.latestOdds dosent return any odds for that match immediately. 
+                        # Don't yet know why
+                        try:
+                            MatchPrices.pricesMatchOdds(self, match, odds)
+                            MatchPrices.dataframeToCsv(self, match) 
+                        except IndexError:
+                            print('IndexError')
+                            break
                         break
                     else:
                         continue
@@ -42,21 +78,25 @@ class MatchPrices:
     ''' Update Match object with Rapid Api data - scores, status, goals times '''
     def updateMatchObject(match):
         
-        try:
-            with open(f'C:/dev/Python/betfairData/rapidApiDataCsvs/{match.fixture}.json', 'r') as file:
-                content = json.load(file) 
-
-                match.matchStatus = content['matchStatus']
-                match.homeGoals = content['homeGoals']
-                match.awayGoals = content['awayGoals']
-                match.homeGoalsList = content['homeGoalsList']
-                match.awayGoalsList = content['awayGoalsList']
-                match.goalCount = content['goalCount']
-            
-                file.close()
-
-        except FileNotFoundError:
-            return
+        t0 = time.time()
+        with open(f'C:/dev/Python/betfairData/rapidApiDataCsvs/{match.homeTeam} v {match.awayTeam}.json', 'r') as file:
+            # try:        
+            content = json.load(file) 
+            # match.dateTimeObject = content['dateTime'] # For testing
+            match.matchStatus = content['matchStatus']
+            match.homeGoals = content['homeGoals']
+            match.awayGoals = content['awayGoals']
+            match.homeGoalsList = content['homeGoalsList']
+            match.awayGoalsList = content['awayGoalsList']
+            match.goalCount = content['goalCount']
+        
+            file.close()
+        t1 = time.time()
+        print('time = ', t1 - t0)
+            # except (json.JSONDecodeError):
+            #     print(match.fixture)
+            #     print(content, '\n')
+            #     return
 
 
 class MatchOddsPlusOne:

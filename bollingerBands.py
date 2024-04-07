@@ -36,8 +36,10 @@ class BollingerBands:
         
         j = 0
         for interval in intervals:
+            
             if (eventId.prices.iloc[-1:]['matchOddsTime'] - timedelta(seconds=interval)).values[0] - (eventId.prices.iloc[0:1]['matchOddsTime']).values[0] < 0:
                 return    
+
             else:
                 start = (eventId.prices.iloc[-1:]['matchOddsTime'] - timedelta(seconds=interval)).values[0]
                 end = (eventId.prices.iloc[-1:]['matchOddsTime']).values[0]

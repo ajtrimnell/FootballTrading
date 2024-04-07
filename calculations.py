@@ -25,7 +25,7 @@ class Calculations:
             # This will delete any events that are not in Guardian but appear in the match objects list
             if len(eventId.prices['matchOddsTime']) == 0 and (eventId.dateTimeObject - now).total_seconds() < 0:
                 if eventId.matchStatus == 'NS':
-                    return print('Match not yet started')
+                    return
                 else:
                     matchObjectsList.remove(eventId)
                     return ['Bet Angel Api thinks market is still loaded in', 0]
@@ -52,7 +52,7 @@ class Calculations:
                     self.bollingerMask = (eventId.bollingerBandDict[f'{str(self.interval)}']['matchTime'] >= self.start) & (eventId.bollingerBandDict[f'{str(self.interval)}']['matchTime'] < self.end)
                     self.maskHomePlusOne = (eventId.pricesPlusOneToHome['matchOddsTime'] >= self.start) & (eventId.pricesPlusOneToHome['matchOddsTime'] < self.end)
                     self.maskAwayPlusOne = (eventId.pricesPlusOneToAway['matchOddsTime'] >= self.start) & (eventId.pricesPlusOneToAway['matchOddsTime'] < self.end)
-                    
+
                     self.sampleMatchPrices = eventId.prices.loc[self.mask].resample('S', on='matchOddsTime')['homeBackPrice', 'homeLayPrice', 'awayBackPrice', 'awayLayPrice', 'drawBackPrice', 'drawLayPrice'].mean()
                     self.sampleHomePlusOne = eventId.pricesPlusOneToHome.loc[self.maskHomePlusOne].resample('S', on='matchOddsTime')[f'{eventId.homeTeam}_back', f'{eventId.homeTeam}_lay', f'{eventId.awayTeam}_back', f'{eventId.awayTeam}_lay', 'drawBackPrice', 'drawLayPrice'].mean()
                     self.sampleAwayPlusOne = eventId.pricesPlusOneToAway.loc[self.maskAwayPlusOne].resample('S', on='matchOddsTime')[f'{eventId.awayTeam}_back', f'{eventId.awayTeam}_lay', f'{eventId.homeTeam}_back', f'{eventId.homeTeam}_lay', 'drawBackPrice', 'drawLayPrice'].mean()
