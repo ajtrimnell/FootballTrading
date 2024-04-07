@@ -2,6 +2,8 @@ from datetime import timedelta
 import math
 from datetime import datetime
 import csv
+import pandas as pd
+import numpy as np
 
 class Calculations:
     
@@ -50,12 +52,33 @@ class Calculations:
                     
                     self.mask = (eventId.prices['matchOddsTime'] >= self.start) & (eventId.prices['matchOddsTime'] < self.end)
                     self.bollingerMask = (eventId.bollingerBandDict[f'{str(self.interval)}']['matchTime'] >= self.start) & (eventId.bollingerBandDict[f'{str(self.interval)}']['matchTime'] < self.end)
-                    self.maskHomePlusOne = (eventId.pricesPlusOneToHome['matchOddsTime'] >= self.start) & (eventId.pricesPlusOneToHome['matchOddsTime'] < self.end)
-                    self.maskAwayPlusOne = (eventId.pricesPlusOneToAway['matchOddsTime'] >= self.start) & (eventId.pricesPlusOneToAway['matchOddsTime'] < self.end)
-
+                    self.maskHomePlusOne = (eventId.pricesPlusOneToHome['matchOddsTime'] >= self.start)
+                    # & (eventId.pricesPlusOneToHome['matchOddsTime'] <= self.end)
+                    self.maskAwayPlusOne = (eventId.pricesPlusOneToAway['matchOddsTime'] >= self.start)
+                    # & (eventId.pricesPlusOneToAway['matchOddsTime'] <= self.end)
+                    # print('~~~~~~~~~~~~~~~~~~~~')
+                    # print(eventId.fixture)
                     self.sampleMatchPrices = eventId.prices.loc[self.mask].resample('S', on='matchOddsTime')['homeBackPrice', 'homeLayPrice', 'awayBackPrice', 'awayLayPrice', 'drawBackPrice', 'drawLayPrice'].mean()
-                    self.sampleHomePlusOne = eventId.pricesPlusOneToHome.loc[self.maskHomePlusOne].resample('S', on='matchOddsTime')[f'{eventId.homeTeam}_back', f'{eventId.homeTeam}_lay', f'{eventId.awayTeam}_back', f'{eventId.awayTeam}_lay', 'drawBackPrice', 'drawLayPrice'].mean()
-                    self.sampleAwayPlusOne = eventId.pricesPlusOneToAway.loc[self.maskAwayPlusOne].resample('S', on='matchOddsTime')[f'{eventId.awayTeam}_back', f'{eventId.awayTeam}_lay', f'{eventId.homeTeam}_back', f'{eventId.homeTeam}_lay', 'drawBackPrice', 'drawLayPrice'].mean()
+                    # time_interval_split = 1/60
+                    
+                    # mask1 = eventId.pricesPlusOneToHome['matchOddsTime'] >= self.start
+                    # mask2 = eventId.pricesPlusOneToAway['matchOddsTime'] >= self.start
+                    
+                    # self.sampleHomePlusOneTemp = eventId.pricesPlusOneToHome.loc[mask1]
+                    # self.sampleHomePlusOne = (self.sampleHomePlusOneTemp.groupby([pd.Grouper(key='matchOddsTime', freq=f'{time_interval_split}min')]).mean()).round(2)
+                    # print(mask1, self.sampleHomePlusOne)
+                    
+                    # self.sampleAwayPlusOneTemp = eventId.pricesPlusOneToAway.loc[mask2]
+                    # self.sampleAwayPlusOne = (self.sampleAwayPlusOneTemp.groupby([pd.Grouper(key='matchOddsTime', freq=f'{time_interval_split}min')]).mean()).round(2)
+
+                    self.sampleHomePlusOneTemp = eventId.pricesPlusOneToHome[eventId.pricesPlusOneToHome['matchOddsTime'] >= self.start]
+                    self.sampleAwayPlusOneTemp = eventId.pricesPlusOneToAway[eventId.pricesPlusOneToAway['matchOddsTime'] >= self.start]
+                    self.sampleHomePlusOne = self.sampleHomePlusOneTemp.resample('S', on='matchOddsTime')[f'{eventId.homeTeam}_back', f'{eventId.homeTeam}_lay', f'{eventId.awayTeam}_back', f'{eventId.awayTeam}_lay', 'drawBackPrice', 'drawLayPrice'].mean()
+                    self.sampleAwayPlusOne = self.sampleAwayPlusOneTemp.resample('S', on='matchOddsTime')[f'{eventId.awayTeam}_back', f'{eventId.awayTeam}_lay', f'{eventId.homeTeam}_back', f'{eventId.homeTeam}_lay', 'drawBackPrice', 'drawLayPrice'].mean()
+                
+                    # print(self.sampleHomePlusOne)
+                    # self.sampleHomePlusOne = eventId.pricesPlusOneToHome.loc[self.maskHomePlusOne].resample('S', on='matchOddsTime')[f'{eventId.homeTeam}_back', f'{eventId.homeTeam}_lay', f'{eventId.awayTeam}_back', f'{eventId.awayTeam}_lay', 'drawBackPrice', 'drawLayPrice'].mean()
+                    # self.sampleAwayPlusOne = eventId.pricesPlusOneToAway.loc[self.maskAwayPlusOne].resample('S', on='matchOddsTime')[f'{eventId.awayTeam}_back', f'{eventId.awayTeam}_lay', f'{eventId.homeTeam}_back', f'{eventId.homeTeam}_lay', 'drawBackPrice', 'drawLayPrice'].mean()
                 
                     self.homeBackAverage = self.sampleMatchPrices.iloc[-10:-1]['homeBackPrice'].mean()
                     self.awayBackAverage = self.sampleMatchPrices.iloc[-10:-1]['awayBackPrice'].mean()
@@ -79,7 +102,16 @@ class Calculations:
                            
                     self.totalLossHomeLay = averageLossForPeriodHomeLay(self.xgsForPeriod, self.homeLay_homeGoal, self.homeLay_awayGoal).values
                     self.totalLossAwayLay = averageLossForPeriodAwayLay(self.xgsForPeriod, self.awayLay_homeGoal, self.awayLay_awayGoal).values
-
+                    
+                    if math.isnan(self.totalLossHomeLay[0]) or math.isinf(self.totalLossHomeLay[0]):
+                        print(self.totalLossHomeLay[0], type(self.totalLossHomeLay[0]))
+                        self.totalLossHomeLay[0] = -0.01
+                        print(self.totalLossHomeLay[0], type(self.totalLossHomeLay[0]))
+                        pass
+                    if math.isnan(self.totalLossAwayLay[0])  or math.isinf(self.totalLossAwayLay[0]):
+                        self.totalLossAwayLay[0] = -0.01
+                        pass
+                    
                     self.bollingerBandDataframe = bollingerBands(self)
                     self.breakEvenPriceHomeLay = breakEvenCalcsHomeLay(self)
                     self.breakEvenPriceAwayLay = breakEvenCalcsAwayLay(self)
@@ -135,6 +167,8 @@ class Calculations:
             
             return self.movingAveragePlusOneToHome_homeBack, self.movingAveragePlusOneToHome_awayBack, self.movingAveragePlusOneToHome_drawBack, \
                     self.movingAveragePlusOneToHome_homeLay, self.movingAveragePlusOneToHome_awayLay, self.movingAveragePlusOneToHome_drawLay
+            # return self.movingAveragePlusOneToHome_homeBack, self.movingAveragePlusOneToHome_awayBack, \
+            #         self.movingAveragePlusOneToHome_homeLay, self.movingAveragePlusOneToHome_awayLay,
         
         def pricesAtPeriodStart(self):
             self.homeStartBackPrice = self.sampleMatchPrices.iloc[0:1]['homeBackPrice']
@@ -220,7 +254,6 @@ class Calculations:
             
             try:
                 x = greeningProfitOrLoss / currentMarketLiability
-                
                 if x > 0.9 or x < 1.1: 
                     return True
                 else:
@@ -279,8 +312,25 @@ class PositionExit:
     
     def __init__(self, eventId, intervals, betAngelApiObject, matchObjectsList, now):
         
-        self.matchScoreList = eventId.matchScoreList
-        
+        # self.matchScoreList = eventId.matchScoreList
+        # self.homeGoalsList = eventId.homeGoalsList
+        # self.awayGoalsList = eventId.awayGoalsList
+        # self.betPlaced = eventId.betPlaced
+    
+        def checkForOpenPosition():
+            if eventId.betPlaced == True:
+                if eventId.openPosition == True:
+                    checkGameState()
+                    
+                if eventId.openPosition == False:
+                    pass
+                
+        def checkGameState():
+            
+            eventId.matchStatus
+            eventId.isInPlay
+    
+    
         
     # Check for home goal
     # Check for away goal

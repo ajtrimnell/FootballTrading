@@ -171,12 +171,12 @@ def workerFunction4():
         except IndexError:
             continue
         
-leagues = [39,40,41,61,78,135,140,141,144,88,141,136,62,79,94,188,113,207,119,307,253,71,128] # Don't forget Champions League and internationals etc
+leagues = [39,40,41,61,78,113,135,140,141,144,88,141,136,62,79,94,188,113,179,207,119,307,253,71,128] # Don't forget Champions League and internationals etc
 today = todaysDate()
               
 if __name__ == '__main__':
     
-    intervals = [10,300,360,420,480,540,600,660,720,780,840,960,1020,1080,1140,1200]
+    intervals = [300,360,420,480,540,600,660,720,780,840,960,1020,1080,1140,1200]
    
     betAngelApiObject = createBetAngelApiObject()
     matchObjectsList = matchObjects(betAngelApiObject)

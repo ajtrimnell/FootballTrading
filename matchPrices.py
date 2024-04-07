@@ -8,16 +8,11 @@ class MatchPrices:
     def __init__(self, now, betAngelApiObject, matchObjectsList):
         self.latestOdds = betAngelApiObject.marketPrices()
         self.now = now
-        
-        # print(self.latestOdds, '\n')
+
         ''' Check if the market has finished and is now closed'''
         def currentMatchOdds(self):
             for odds in self.latestOdds['result']['markets']:
                 for match in matchObjectsList:      
-                    
-                    # if match.fixture == 'Aston Villa_v_Brentford':
-                    #     print('Aston Villa_v_Brentford', match.isInPlay)
-                    # print(match.fixture, match.id, odds.get('id'), odds.get('name'), match.isInPlay)
                     if match.id == odds.get('id') and match.isInPlay == False:
                         continue      
                 
@@ -39,9 +34,7 @@ class MatchPrices:
                             except (json.JSONDecodeError):
                                 print(match.fixture)
                                 break
-                        
-                        
-                        
+
                         # MatchPrices.updateMatchObject(match)
                         # 'try' statement - When a match goes inplay, the self.latestOdds dosent return any odds for that match immediately. 
                         # Don't yet know why
@@ -82,7 +75,7 @@ class MatchPrices:
         with open(f'C:/dev/Python/betfairData/rapidApiDataCsvs/{match.homeTeam} v {match.awayTeam}.json', 'r') as file:
             # try:        
             content = json.load(file) 
-            # match.dateTimeObject = content['dateTime'] # For testing
+            
             match.matchStatus = content['matchStatus']
             match.homeGoals = content['homeGoals']
             match.awayGoals = content['awayGoals']
@@ -140,6 +133,7 @@ class MatchOddsPlusOne:
                                     odds.get('selections', {})[2].get('instances')[0].get('values')[1].get('v')]],
                                     columns=['rowIndex', 'matchOddsTime', f'{match.homeTeam}_back', f'{match.homeTeam}_lay', f'{match.awayTeam}_back', f'{match.awayTeam}_lay', 'drawBackPrice', 'drawLayPrice'],
                                     ),ignore_index = True)
+                # match.pricesPlusOneToAway.fillna(0)
             else:
                 match.pricesPlusOneToAway = match.pricesPlusOneToAway._append(pd.DataFrame([[match.rowIndex, self.now, 
                                     odds.get('selections', {})[0].get('instances')[0].get('values')[0].get('v'),
@@ -150,6 +144,7 @@ class MatchOddsPlusOne:
                                     odds.get('selections', {})[2].get('instances')[0].get('values')[1].get('v')]],
                                     columns=['rowIndex', 'matchOddsTime', f'{match.awayTeam}_back', f'{match.awayTeam}_lay', f'{match.homeTeam}_back', f'{match.homeTeam}_lay', 'drawBackPrice', 'drawLayPrice'],
                                     ),ignore_index = True)
+                # match.pricesPlusOneToAway.fillna()
             
             self.dfToAppend = pd.DataFrame([[match.rowIndex, self.now, 
                                 odds.get('selections', {})[0].get('instances')[0].get('values')[0].get('v'),

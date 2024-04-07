@@ -185,8 +185,9 @@ class Match:
 
         def plusOneDataframes(self):
             self.pricesPlusOneToHome = pd.DataFrame(columns=['rowIndex', 'matchOddsTime', f'{self.homeTeam}_back', f'{self.homeTeam}_lay', f'{self.awayTeam}_back', f'{self.awayTeam}_lay', 'drawBackPrice', 'drawLayPrice'])
-            self.pricesPlusOneToAway = pd.DataFrame(columns=['rowIndex', 'matchOddsTime', f'{self.awayTeam}_back', f'{self.awayTeam}_lay', f'{self.homeTeam}_back', f'{self.homeTeam}_lay', 'drawBackPrice', 'drawLayPrice'])
-            
+            self.pricesPlusOneToAway = pd.DataFrame(columns=['rowIndex', 'matchOddsTime', f'{self.awayTeam}_back', f'{self.awayTeam}_lay', f'{self.homeTeam}_back', f'{self.homeTeam}_lay', 'drawBackPrice', 'drawLayPrice'])         
+            self.pricesPlusOneToHome['matchOddsTime'] = pd.to_datetime(self.pricesPlusOneToHome['matchOddsTime'])
+            self.pricesPlusOneToAway['matchOddsTime'] = pd.to_datetime(self.pricesPlusOneToAway['matchOddsTime'])
             
         fixtureParse(self, fixture)
         dateAndTime(self, dateTimeString)
